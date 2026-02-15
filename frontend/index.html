@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購物商城 - 我的購物車</title>
+    <style>
+        :root {
+            --primary-color: #5cb85c;
+            --text-dark: #333;
+            --text-gray: #777;
+            --border-color: #eee;
+            --bg-light: #f9f9f9;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        /* 導覽列 */
+        header {
+            background: white;
+            padding: 15px 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 16px;
+        }
+
+        nav a.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .user-status {
+            color: var(--primary-color);
+        }
+
+        .logout-btn {
+            border: 1px solid #ccc;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+        }
+
+        /* 主內容區 */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        .cart-title {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 購物車項目 */
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .product-img {
+            width: 80px;
+            height: 80px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #999;
+            font-size: 14px;
+            margin-right: 20px;
+        }
+
+        .product-info {
+            flex-grow: 1;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+        }
+
+        .product-price {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        /* 數量控制器 */
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 40px;
+        }
+
+        .quantity-control button {
+            background: #f1f1f1;
+            border: none;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .quantity-control input {
+            width: 40px;
+            text-align: center;
+            border: none;
+            outline: none;
+            font-size: 16px;
+        }
+
+        .subtotal {
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 18px;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        .remove-btn {
+            color: #ccc;
+            font-size: 20px;
+            margin-left: 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        /* 底部結帳區 */
+        .footer-section {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .total-amount span {
+            color: #d9534f;
+            font-size: 24px;
+        }
+
+        .checkout-btn {
+            background-color: #67b18a;
+            color: white;
+            border: none;
+            padding: 12px 50px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background-color: #56a079;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">🛒 購物商城</div>
+    <nav>
+        <a href="#" class="active">購物車 (OK)</a>
+        <a href="#">我的訂單</a>
+        <span class="user-status">Cc(已登入)</span>
+        <button class="logout-btn">登出</button>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="cart-title">🛒 我的購物車</div>
+
+    <div id="cart-list">
+        <div class="cart-item" data-price="500">
+            <div class="product-img">商品圖</div>
+            <div class="product-info">
+                <p class="product-name">精選商品 A</p>
+                <p class="product-price">單價: $500</p>
+            </div>
+            <div class="quantity-control">
+                <button onclick="changeQty(this, -1)">-</button>
+                <input type="text" value="1" readonly>
+                <button onclick="changeQty(this, 1)">+</button>
+            </div>
+            <div class="subtotal">NT$ 500</div>
+            <button class="remove-btn" onclick="removeItem(this)">×</button>
+        </div>
+
+        <div class="cart-item" data-price="1200">
+            <div class="product-img">商品圖</div>
+            <div class="product-info">
+                <p class="product-name">高級配件 B</p>
+                <p class="product-price">單價: $1200</p>
+            </div>
+            <div class="quantity-control">
+                <button onclick="changeQty(this, -1)">-</button>
+                <input type="text" value="1" readonly>
+                <button onclick="changeQty(this, 1)">+</button>
+            </div>
+            <div class="subtotal">NT$ 1,200</div>
+            <button class="remove-btn" onclick="removeItem(this)">×</button>
+        </div>
+    </div>
+
+    <div class="footer-section">
+        <div class="total-amount">總金額: <span>NT$ <span id="grand-total">1,700</span></span></div>
+        <button class="checkout-btn" onclick="processCheckout()">去結帳</button>
+    </div>
+</div>
+
+<script>
+    function changeQty(btn, delta) {
+        const row = btn.closest('.cart-item');
+        const input = row.querySelector('input');
+        const price = parseInt(row.getAttribute('data-price'));
+        const subtotalEl = row.querySelector('.subtotal');
+        
+        let qty = parseInt(input.value) + delta;
+        if (qty < 1) qty = 1;
+        
+        input.value = qty;
+        const subtotal = qty * price;
+        subtotalEl.innerText = 'NT$ ' + subtotal.toLocaleString();
+        
+        updateGrandTotal();
+    }
+
+    function removeItem(btn) {
+        if(confirm('確定要移除此商品嗎？')) {
+            btn.closest('.cart-item').remove();
+            updateGrandTotal();
+        }
+    }
+
+    function updateGrandTotal() {
+        let total = 0;
+        document.querySelectorAll('.cart-item').forEach(item => {
+            const price = parseInt(item.getAttribute('data-price'));
+            const qty = parseInt(item.querySelector('input').value);
+            total += price * qty;
+        });
+        document.getElementById('grand-total').innerText = total.toLocaleString();
+    }
+
+    function processCheckout() {
+        const total = document.getElementById('grand-total').innerText;
+        if(total === "0") {
+            alert("購物車是空的喔！");
+        } else {
+            alert("感謝您的購買！總金額為 NT$ " + total);
+        }
+    }
+</script>
+
+</body>
+</html>
