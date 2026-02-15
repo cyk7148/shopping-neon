@@ -5,193 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>購物商城</title>
     <style>
-        :root {
-            --primary: #67b18a; /* 圖片中的綠色 */
-            --dark: #34495e;
-            --bg: #f9f9f9;
-        }
+        :root { --primary: #67b18a; --dark: #34495e; --bg: #f9f9f9; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; color: #333; }
-        
-        /* 導覽列 */
         header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
         nav { display: flex; gap: 15px; align-items: center; }
-        nav a { text-decoration: none; color: #666; font-size: 14px; }
         .user-status { color: var(--primary); font-weight: bold; font-size: 14px; }
         .btn-auth { background: var(--dark); color: white; padding: 6px 15px; border-radius: 20px; border: none; cursor: pointer; }
-
-        /* 主容器 */
         .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
-        .section-title { text-align: center; font-size: 24px; margin: 40px 0; }
         .hidden { display: none; }
-
-        /* 登入註冊卡片 */
         .auth-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-
-        /* 商品展示 */
+        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; }
         .product-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
-        .product-card h3 { margin: 15px 0 5px; }
-        .price { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
-        .stock { font-size: 12px; color: #999; margin-bottom: 15px; }
-
-        /* 數量控制器 (還原圖片樣式) */
-        .qty-box { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; gap: 5px; }
-        .qty-box button { background: #f1f1f1; border: 1px solid #ddd; width: 25px; height: 25px; cursor: pointer; }
-        .qty-box input { width: 40px; text-align: center; border: 1px solid #ddd; height: 23px; }
     </style>
 </head>
 <body>
-
 <header>
     <div class="logo">🛒 購物商城</div>
     <nav>
-        <a href="#" onclick="showPage('products')">購物車 (OK)</a>
-        <a href="#" onclick="showPage('orders')">我的訂單</a>
-        <span id="user-display" class="user-status hidden">Cc(已登入)</span>
+        <a href="#" onclick="showPage('products')">首頁</a>
+        <span id="user-display" class="user-status hidden"></span>
         <button id="auth-nav-btn" class="btn-auth" onclick="showPage('login')">登入 / 註冊</button>
     </nav>
 </header>
-
 <div class="container">
     <div id="page-products">
-        <h2 class="section-title">🛍️ 熱門商品</h2>
-        <div class="product-grid" id="product-list">
-            <p style="text-align:center;">正在載入商品中，請稍候...</p>
-        </div>
+        <h2 style="text-align:center;">🛍️ 熱門商品</h2>
+        <div class="product-grid" id="product-list">載入中...</div>
     </div>
-
     <div id="page-login" class="auth-card hidden">
-        <h2 style="margin-top:0;">登入</h2>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="login-email" placeholder="請輸入 Email">
-        </div>
-        <div class="form-group">
-            <label>密碼</label>
-            <input type="password" id="login-password" placeholder="請輸入密碼">
-        </div>
+        <h2>登入</h2>
+        <div class="form-group"><input type="email" id="login-email" placeholder="Email"></div>
+        <div class="form-group"><input type="password" id="login-password" placeholder="密碼"></div>
         <button class="submit-btn" onclick="apiLogin()">登入</button>
-        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('register')">還沒有帳號？點此註冊</a></p>
+        <p style="text-align:center;"><a href="#" onclick="showPage('register')">點此註冊</a></p>
     </div>
-
     <div id="page-register" class="auth-card hidden">
-        <h2 style="margin-top:0;">註冊新帳號</h2>
-        <div class="form-group">
-            <label>您的暱稱</label>
-            <input type="text" id="reg-name" placeholder="例如：帥氣店長">
-        </div>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="reg-email">
-        </div>
-        <div class="form-group">
-            <label>密碼</label>
-            <input type="password" id="reg-password">
-        </div>
+        <h2>註冊</h2>
+        <div class="form-group"><input type="text" id="reg-name" placeholder="暱稱"></div>
+        <div class="form-group"><input type="email" id="reg-email" placeholder="Email"></div>
+        <div class="form-group"><input type="password" id="reg-password" placeholder="密碼"></div>
         <button class="submit-btn" onclick="apiRegister()">註冊</button>
-        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？點此登入</a></p>
-    </div>
-
-    <div id="page-orders" class="hidden">
-        <h2 class="section-title">📦 我的歷史訂單</h2>
-        <p style="text-align:center; color:#999;">您還沒有任何訂單</p>
     </div>
 </div>
-
 <script>
-    // 使用相對路徑，讓前端與後端整合在同一個 Render 網址
     const API_URL = "/api"; 
-
-    function showPage(pageId) {
-        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
-        document.getElementById('page-' + pageId).classList.remove('hidden');
-    }
-
+    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); }
     async function loadProducts() {
         try {
             const res = await fetch(`${API_URL}/products`);
-            const products = await res.json();
-            const list = document.getElementById('product-list');
-            
-            if (products.length === 0) {
-                list.innerHTML = "<p style='text-align:center;'>目前沒有商品</p>";
-                return;
-            }
-
-            list.innerHTML = products.map(p => `
+            const data = await res.json();
+            document.getElementById('product-list').innerHTML = data.map(p => `
                 <div class="product-card">
-                    <img src="${p.image_url || 'https://via.placeholder.com/400x300'}" alt="${p.name}">
+                    <img src="${p.image_url || 'https://via.placeholder.com/400x300'}">
                     <h3>${p.name}</h3>
-                    <p class="price">NT$ ${p.price}</p>
-                    <p class="stock">庫存剩餘: ${p.stock}</p>
-                    <div class="qty-box">
-                        <button onclick="this.nextElementSibling.value = Math.max(1, parseInt(this.nextElementSibling.value)-1)">-</button>
-                        <input type="text" value="1">
-                        <button onclick="this.previousElementSibling.value = parseInt(this.previousElementSibling.value)+1">+</button>
-                    </div>
-                    <button class="submit-btn" style="width:80%" onclick="alert('已加入購物車')">加入購物車</button>
-                </div>
-            `).join('');
-        } catch (err) {
-            console.error("載入失敗:", err);
-            document.getElementById('product-list').innerHTML = "<p style='text-align:center;'>喚醒伺服器中，請重新整理頁面...</p>";
-        }
+                    <p style="color:red">NT$ ${p.price}</p>
+                    <button class="submit-btn" style="width:80%">加入購物車</button>
+                </div>`).join('');
+        } catch(e) { console.error(e); }
     }
-
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-
-        try {
-            const res = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-
-            if (res.ok) {
-                alert("登入成功！");
-                document.getElementById('user-display').innerText = `${data.username}(已登入)`;
-                document.getElementById('user-display').classList.remove('hidden');
-                document.getElementById('auth-nav-btn').classList.add('hidden');
-                showPage('products');
-            } else {
-                alert(data.error);
-            }
-        } catch (err) { alert("連線失敗，請確認後端已啟動"); }
+        const res = await fetch(`${API_URL}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password}) });
+        const data = await res.json();
+        if(res.ok) { document.getElementById('user-display').innerText = data.username + "(已登入)"; document.getElementById('user-display').classList.remove('hidden'); document.getElementById('auth-nav-btn').classList.add('hidden'); showPage('products'); } else { alert(data.error); }
     }
-
     async function apiRegister() {
         const username = document.getElementById('reg-name').value;
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
-
-        try {
-            const res = await fetch(`${API_URL}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
-            if (res.ok) {
-                alert("註冊成功！請登入");
-                showPage('login');
-            } else {
-                const data = await res.json();
-                alert(data.error);
-            }
-        } catch (err) { alert("註冊失敗"); }
+        const res = await fetch(`${API_URL}/register`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email, password}) });
+        if(res.ok) { alert("註冊成功"); showPage('login'); } else { alert("註冊失敗"); }
     }
-
-    // 啟動載入
     loadProducts();
 </script>
-
 </body>
 </html>
