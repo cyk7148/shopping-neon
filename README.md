@@ -1,1 +1,1 @@
-# my-shopping-app
+# shopping-neon
