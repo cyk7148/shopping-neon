@@ -62,7 +62,7 @@
     <div id="page-products">
         <h2 class="section-title">🛍️ 熱門商品</h2>
         <div class="product-grid" id="product-list">
-            <p style="text-align:center;">正在從 Render 喚醒資料庫中，請稍候...</p>
+            <p style="text-align:center;">正在載入商品中，請稍候...</p>
         </div>
     </div>
 
@@ -97,24 +97,33 @@
         <button class="submit-btn" onclick="apiRegister()">註冊</button>
         <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？點此登入</a></p>
     </div>
+
+    <div id="page-orders" class="hidden">
+        <h2 class="section-title">📦 我的歷史訂單</h2>
+        <p style="text-align:center; color:#999;">您還沒有任何訂單</p>
+    </div>
 </div>
 
 <script>
-    const API_URL = "https://shopping-neon.onrender.com/api"; // 你的 Render 網址
+    // 使用相對路徑，讓前端與後端整合在同一個 Render 網址
+    const API_URL = "/api"; 
 
-    // 1. 切換頁面邏輯
     function showPage(pageId) {
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('page-' + pageId).classList.remove('hidden');
     }
 
-    // 2. 從後端抓取商品 (Daniel & Alan)
     async function loadProducts() {
         try {
             const res = await fetch(`${API_URL}/products`);
             const products = await res.json();
             const list = document.getElementById('product-list');
             
+            if (products.length === 0) {
+                list.innerHTML = "<p style='text-align:center;'>目前沒有商品</p>";
+                return;
+            }
+
             list.innerHTML = products.map(p => `
                 <div class="product-card">
                     <img src="${p.image_url || 'https://via.placeholder.com/400x300'}" alt="${p.name}">
@@ -122,19 +131,19 @@
                     <p class="price">NT$ ${p.price}</p>
                     <p class="stock">庫存剩餘: ${p.stock}</p>
                     <div class="qty-box">
-                        <button>-</button>
+                        <button onclick="this.nextElementSibling.value = Math.max(1, parseInt(this.nextElementSibling.value)-1)">-</button>
                         <input type="text" value="1">
-                        <button>+</button>
+                        <button onclick="this.previousElementSibling.value = parseInt(this.previousElementSibling.value)+1">+</button>
                     </div>
                     <button class="submit-btn" style="width:80%" onclick="alert('已加入購物車')">加入購物車</button>
                 </div>
             `).join('');
         } catch (err) {
             console.error("載入失敗:", err);
+            document.getElementById('product-list').innerHTML = "<p style='text-align:center;'>喚醒伺服器中，請重新整理頁面...</p>";
         }
     }
 
-    // 3. 處理登入
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
@@ -156,10 +165,9 @@
             } else {
                 alert(data.error);
             }
-        } catch (err) { alert("伺服器喚醒中，請稍候再試"); }
+        } catch (err) { alert("連線失敗，請確認後端已啟動"); }
     }
 
-    // 4. 處理註冊
     async function apiRegister() {
         const username = document.getElementById('reg-name').value;
         const email = document.getElementById('reg-email').value;
