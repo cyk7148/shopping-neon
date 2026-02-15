@@ -3,203 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>購物商城 - 我的購物車</title>
+    <title>購物商城</title>
     <style>
         :root {
-            --primary-color: #5cb85c;
-            --text-dark: #333;
-            --text-gray: #777;
-            --border-color: #eee;
-            --bg-light: #f9f9f9;
+            --primary: #67b18a; /* 圖片中的綠色 */
+            --dark: #34495e;
+            --bg: #f9f9f9;
         }
-
-        body {
-            font-family: "Microsoft JhengHei", Arial, sans-serif;
-            background-color: var(--bg-light);
-            margin: 0;
-            color: var(--text-dark);
-        }
-
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; color: #333; }
+        
         /* 導覽列 */
-        header {
-            background: white;
-            padding: 15px 10%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        nav { display: flex; gap: 15px; align-items: center; }
+        nav a { text-decoration: none; color: #666; font-size: 14px; }
+        .user-status { color: var(--primary); font-weight: bold; font-size: 14px; }
+        .btn-auth { background: var(--dark); color: white; padding: 6px 15px; border-radius: 20px; border: none; cursor: pointer; }
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        /* 主容器 */
+        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
+        .section-title { text-align: center; font-size: 24px; margin: 40px 0; }
+        .hidden { display: none; }
 
-        nav {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
+        /* 登入註冊卡片 */
+        .auth-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
 
-        nav a {
-            text-decoration: none;
-            color: var(--text-dark);
-            font-size: 16px;
-        }
+        /* 商品展示 */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .product-card h3 { margin: 15px 0 5px; }
+        .price { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
+        .stock { font-size: 12px; color: #999; margin-bottom: 15px; }
 
-        nav a.active {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .user-status {
-            color: var(--primary-color);
-        }
-
-        .logout-btn {
-            border: 1px solid #ccc;
-            padding: 5px 15px;
-            border-radius: 20px;
-            background: white;
-            cursor: pointer;
-        }
-
-        /* 主內容區 */
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
-
-        .cart-title {
-            text-align: center;
-            font-size: 22px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* 購物車項目 */
-        .cart-item {
-            display: flex;
-            align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .product-img {
-            width: 80px;
-            height: 80px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #999;
-            font-size: 14px;
-            margin-right: 20px;
-        }
-
-        .product-info {
-            flex-grow: 1;
-        }
-
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-        }
-
-        .product-price {
-            color: var(--text-gray);
-            font-size: 14px;
-        }
-
-        /* 數量控制器 */
-        .quantity-control {
-            display: flex;
-            align-items: center;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-right: 40px;
-        }
-
-        .quantity-control button {
-            background: #f1f1f1;
-            border: none;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .quantity-control input {
-            width: 40px;
-            text-align: center;
-            border: none;
-            outline: none;
-            font-size: 16px;
-        }
-
-        .subtotal {
-            color: #d9534f;
-            font-weight: bold;
-            font-size: 18px;
-            min-width: 100px;
-            text-align: right;
-        }
-
-        .remove-btn {
-            color: #ccc;
-            font-size: 20px;
-            margin-left: 20px;
-            cursor: pointer;
-            border: none;
-            background: none;
-        }
-
-        /* 底部結帳區 */
-        .footer-section {
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 15px;
-        }
-
-        .total-amount {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .total-amount span {
-            color: #d9534f;
-            font-size: 24px;
-        }
-
-        .checkout-btn {
-            background-color: #67b18a;
-            color: white;
-            border: none;
-            padding: 12px 50px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .checkout-btn:hover {
-            background-color: #56a079;
-        }
+        /* 數量控制器 (還原圖片樣式) */
+        .qty-box { display: flex; align-items: center; justify-content: center; margin-bottom: 15px; gap: 5px; }
+        .qty-box button { background: #f1f1f1; border: 1px solid #ddd; width: 25px; height: 25px; cursor: pointer; }
+        .qty-box input { width: 40px; text-align: center; border: 1px solid #ddd; height: 23px; }
     </style>
 </head>
 <body>
@@ -207,96 +51,138 @@
 <header>
     <div class="logo">🛒 購物商城</div>
     <nav>
-        <a href="#" class="active">購物車 (OK)</a>
-        <a href="#">我的訂單</a>
-        <span class="user-status">Cc(已登入)</span>
-        <button class="logout-btn">登出</button>
+        <a href="#" onclick="showPage('products')">購物車 (OK)</a>
+        <a href="#" onclick="showPage('orders')">我的訂單</a>
+        <span id="user-display" class="user-status hidden">Cc(已登入)</span>
+        <button id="auth-nav-btn" class="btn-auth" onclick="showPage('login')">登入 / 註冊</button>
     </nav>
 </header>
 
 <div class="container">
-    <div class="cart-title">🛒 我的購物車</div>
-
-    <div id="cart-list">
-        <div class="cart-item" data-price="500">
-            <div class="product-img">商品圖</div>
-            <div class="product-info">
-                <p class="product-name">精選商品 A</p>
-                <p class="product-price">單價: $500</p>
-            </div>
-            <div class="quantity-control">
-                <button onclick="changeQty(this, -1)">-</button>
-                <input type="text" value="1" readonly>
-                <button onclick="changeQty(this, 1)">+</button>
-            </div>
-            <div class="subtotal">NT$ 500</div>
-            <button class="remove-btn" onclick="removeItem(this)">×</button>
-        </div>
-
-        <div class="cart-item" data-price="1200">
-            <div class="product-img">商品圖</div>
-            <div class="product-info">
-                <p class="product-name">高級配件 B</p>
-                <p class="product-price">單價: $1200</p>
-            </div>
-            <div class="quantity-control">
-                <button onclick="changeQty(this, -1)">-</button>
-                <input type="text" value="1" readonly>
-                <button onclick="changeQty(this, 1)">+</button>
-            </div>
-            <div class="subtotal">NT$ 1,200</div>
-            <button class="remove-btn" onclick="removeItem(this)">×</button>
+    <div id="page-products">
+        <h2 class="section-title">🛍️ 熱門商品</h2>
+        <div class="product-grid" id="product-list">
+            <p style="text-align:center;">正在從 Render 喚醒資料庫中，請稍候...</p>
         </div>
     </div>
 
-    <div class="footer-section">
-        <div class="total-amount">總金額: <span>NT$ <span id="grand-total">1,700</span></span></div>
-        <button class="checkout-btn" onclick="processCheckout()">去結帳</button>
+    <div id="page-login" class="auth-card hidden">
+        <h2 style="margin-top:0;">登入</h2>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="請輸入 Email">
+        </div>
+        <div class="form-group">
+            <label>密碼</label>
+            <input type="password" id="login-password" placeholder="請輸入密碼">
+        </div>
+        <button class="submit-btn" onclick="apiLogin()">登入</button>
+        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('register')">還沒有帳號？點此註冊</a></p>
+    </div>
+
+    <div id="page-register" class="auth-card hidden">
+        <h2 style="margin-top:0;">註冊新帳號</h2>
+        <div class="form-group">
+            <label>您的暱稱</label>
+            <input type="text" id="reg-name" placeholder="例如：帥氣店長">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email">
+        </div>
+        <div class="form-group">
+            <label>密碼</label>
+            <input type="password" id="reg-password">
+        </div>
+        <button class="submit-btn" onclick="apiRegister()">註冊</button>
+        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？點此登入</a></p>
     </div>
 </div>
 
 <script>
-    function changeQty(btn, delta) {
-        const row = btn.closest('.cart-item');
-        const input = row.querySelector('input');
-        const price = parseInt(row.getAttribute('data-price'));
-        const subtotalEl = row.querySelector('.subtotal');
-        
-        let qty = parseInt(input.value) + delta;
-        if (qty < 1) qty = 1;
-        
-        input.value = qty;
-        const subtotal = qty * price;
-        subtotalEl.innerText = 'NT$ ' + subtotal.toLocaleString();
-        
-        updateGrandTotal();
+    const API_URL = "https://shopping-neon.onrender.com/api"; // 你的 Render 網址
+
+    // 1. 切換頁面邏輯
+    function showPage(pageId) {
+        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById('page-' + pageId).classList.remove('hidden');
     }
 
-    function removeItem(btn) {
-        if(confirm('確定要移除此商品嗎？')) {
-            btn.closest('.cart-item').remove();
-            updateGrandTotal();
+    // 2. 從後端抓取商品 (Daniel & Alan)
+    async function loadProducts() {
+        try {
+            const res = await fetch(`${API_URL}/products`);
+            const products = await res.json();
+            const list = document.getElementById('product-list');
+            
+            list.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <img src="${p.image_url || 'https://via.placeholder.com/400x300'}" alt="${p.name}">
+                    <h3>${p.name}</h3>
+                    <p class="price">NT$ ${p.price}</p>
+                    <p class="stock">庫存剩餘: ${p.stock}</p>
+                    <div class="qty-box">
+                        <button>-</button>
+                        <input type="text" value="1">
+                        <button>+</button>
+                    </div>
+                    <button class="submit-btn" style="width:80%" onclick="alert('已加入購物車')">加入購物車</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error("載入失敗:", err);
         }
     }
 
-    function updateGrandTotal() {
-        let total = 0;
-        document.querySelectorAll('.cart-item').forEach(item => {
-            const price = parseInt(item.getAttribute('data-price'));
-            const qty = parseInt(item.querySelector('input').value);
-            total += price * qty;
-        });
-        document.getElementById('grand-total').innerText = total.toLocaleString();
+    // 3. 處理登入
+    async function apiLogin() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert("登入成功！");
+                document.getElementById('user-display').innerText = `${data.username}(已登入)`;
+                document.getElementById('user-display').classList.remove('hidden');
+                document.getElementById('auth-nav-btn').classList.add('hidden');
+                showPage('products');
+            } else {
+                alert(data.error);
+            }
+        } catch (err) { alert("伺服器喚醒中，請稍候再試"); }
     }
 
-    function processCheckout() {
-        const total = document.getElementById('grand-total').innerText;
-        if(total === "0") {
-            alert("購物車是空的喔！");
-        } else {
-            alert("感謝您的購買！總金額為 NT$ " + total);
-        }
+    // 4. 處理註冊
+    async function apiRegister() {
+        const username = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+
+        try {
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            if (res.ok) {
+                alert("註冊成功！請登入");
+                showPage('login');
+            } else {
+                const data = await res.json();
+                alert(data.error);
+            }
+        } catch (err) { alert("註冊失敗"); }
     }
+
+    // 啟動載入
+    loadProducts();
 </script>
 
 </body>
