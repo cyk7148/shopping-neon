@@ -2,13 +2,14 @@
   "name": "shopping-backend",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "express": "^4.18.2",
     "pg": "^8.11.3",
     "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.3.1"
-  },
-  "scripts": {
-    "start": "node index.js"
   }
 }
