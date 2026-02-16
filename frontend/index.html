@@ -11,28 +11,37 @@
         }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
-        /* 導覽列佈局修正 */
+        /* 導覽列優化：加大標題字體並靠左 */
         header { 
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
-            padding: 12px 5%; display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; 
             position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
+            height: 70px; box-sizing: border-box; /* 固定高度讓排版更穩 */
         }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary); cursor: pointer; }
         
-        /* 靠右對齊的容器 */
+        /* 加大萌商城字體 */
+        .logo { 
+            font-size: 28px; /* 從 24px 加大到 28px */
+            font-weight: bold; 
+            color: var(--primary); 
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        
+        /* 靠右對齊容器 */
         .nav-right { display: flex; align-items: center; gap: 12px; }
         
         .btn-cart-header { 
             background: var(--accent); color: white; border: none; 
-            padding: 8px 18px; border-radius: 50px; cursor: pointer; 
+            padding: 10px 20px; border-radius: 50px; cursor: pointer; 
             font-weight: 600; font-size: 14px;
+            display: flex; align-items: center; gap: 5px;
         }
         
-        /* 縮小並美化登入狀態文字 */
         .user-name-btn { 
-            background: #f0f2f0; padding: 6px 12px; border-radius: 10px; 
+            background: #f0f2f0; padding: 8px 15px; border-radius: 12px; 
             cursor: pointer; font-weight: 500; color: var(--primary);
-            font-size: 13px; /* 縮小字體 */
+            font-size: 13px; /* 維持縮小字體 */
             white-space: nowrap; transition: 0.3s;
         }
         .user-name-btn:hover { background: #e2e8e2; }
@@ -58,30 +67,33 @@
 
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center;">精選商品</h2>
-        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:30px;">載入中...</div>
+        <h2 style="text-align:center; margin-bottom:30px; font-weight: 600;">精選商品</h2>
+        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:30px;">載入中...</div>
     </div>
+    
     <div id="page-detail" class="hidden">
         <div id="detail-content" class="card" style="padding:40px;"></div>
         <p style="text-align:center; margin-top:25px; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
     </div>
+
     <div id="page-cart" class="hidden">
-        <h2 style="text-align:center;">我的購物車</h2>
+        <h2 style="text-align:center; margin-bottom:30px; font-weight: 600;">我的購物車</h2>
         <div id="cart-container" class="card" style="padding:30px;"></div>
         <button class="btn-submit" style="margin-top:25px;" onclick="checkout()">立即結帳</button>
     </div>
+
     <div id="page-login" class="hidden">
         <div class="card" style="max-width:380px; margin:0 auto; padding:40px; text-align:center;">
-            <h2>歡迎回來</h2>
+            <h2 style="margin-top:0;">歡迎回來</h2>
             <input type="email" id="login-email" class="input-field" placeholder="Email">
             <input type="password" id="login-password" class="input-field" placeholder="密碼">
-            <button class="btn-submit" onclick="apiLogin()">登入商城</button>
+            <button class="btn-submit" onclick="apiLogin()">進入商城</button>
         </div>
     </div>
 </div>
 
 <div id="user-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:1000;">
-    <div style="background:white; padding:35px; border-radius:28px; width:340px; text-align:center;">
+    <div style="background:white; padding:35px; border-radius:28px; width:340px; text-align:center; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
         <h2 style="margin-top:0;">會員中心</h2>
         <p style="font-size:14px; color:#888;">Email: <span id="modal-email" style="color:#4a4a4a; font-weight:bold;"></span></p>
         <div id="view-mode">
