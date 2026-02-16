@@ -11,7 +11,6 @@
         }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         
-        /* 導覽列精修佈局 */
         header { 
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); 
             padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; 
@@ -19,28 +18,25 @@
             height: 60px; box-sizing: border-box; 
         }
         
-        /* 標題 */
+        /* 標題 24px 精緻風格 */
         .logo { 
             font-size: 24px; font-weight: 800; color: var(--primary); cursor: pointer;
             letter-spacing: 0.5px;
         }
         
-        /* 右側容器：靠右並排列按鈕 */
         .nav-right { display: flex; align-items: center; gap: 8px; }
         
         .btn-cart-header { 
             background: var(--accent); color: white; border: none; 
             padding: 6px 15px; border-radius: 50px; cursor: pointer; 
-            font-weight: 600; font-size: 13px;
-            display: flex; align-items: center; gap: 4px;
+            font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 4px;
         }
         
-        /* 已登入文字縮小且靠右 */
+        /* 已登入文字 12px 縮小靠右 */
         .user-name-btn { 
             background: #f0f2f0; padding: 6px 10px; border-radius: 8px; 
             cursor: pointer; font-weight: 500; color: var(--primary);
-            font-size: 12px; /* 這裡精確縮小字體 */
-            white-space: nowrap; transition: 0.3s;
+            font-size: 12px; white-space: nowrap; transition: 0.3s;
         }
         .user-name-btn:hover { background: #e2e8e2; }
 
@@ -68,18 +64,15 @@
         <h2 style="text-align:center; margin-bottom:25px; font-weight: 600;">精選商品</h2>
         <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;">載入中...</div>
     </div>
-    
     <div id="page-detail" class="hidden">
         <div id="detail-content" class="card" style="padding:40px;"></div>
         <p style="text-align:center; margin-top:25px; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
     </div>
-
     <div id="page-cart" class="hidden">
         <h2 style="text-align:center; margin-bottom:25px; font-weight: 600;">我的購物車</h2>
         <div id="cart-container" class="card" style="padding:30px;"></div>
         <button class="btn-submit" style="margin-top:25px;" onclick="checkout()">立即結帳</button>
     </div>
-
     <div id="page-login" class="hidden">
         <div class="card" style="max-width:380px; margin:0 auto; padding:40px; text-align:center;">
             <h2 style="margin-top:0;">歡迎回來</h2>
@@ -145,14 +138,16 @@
 
     function updateLoginUI(user) {
         currentUser = user;
+        const display = document.getElementById('user-display');
+        const loginBtn = document.getElementById('login-nav-btn');
         if (user) {
-            document.getElementById('user-display').innerText = user.username + "(已登入)";
-            document.getElementById('user-display').classList.remove('hidden');
-            document.getElementById('login-nav-btn').classList.add('hidden');
+            display.innerText = user.username + "(已登入)";
+            display.classList.remove('hidden');
+            loginBtn.classList.add('hidden');
             localStorage.setItem('萌商城_user', JSON.stringify(user));
         } else {
-            document.getElementById('user-display').classList.add('hidden');
-            document.getElementById('login-nav-btn').classList.remove('hidden');
+            display.classList.add('hidden');
+            loginBtn.classList.remove('hidden');
             localStorage.removeItem('萌商城_user');
         }
     }
@@ -240,7 +235,7 @@
         const password = document.getElementById('login-password').value;
         const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
         if (res.ok) {
-            const user = await res.json();
+            const user = await res.json(); 
             updateLoginUI(user);
             showPage('products');
             loadProducts();
