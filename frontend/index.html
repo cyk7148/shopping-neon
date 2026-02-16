@@ -15,16 +15,19 @@
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; transition: 0.3s; }
         .submit-btn:hover { background: #569a76; }
+        .btn-cart { background: #f39c12; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer; margin-right: 10px; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .product-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .product-card img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; background: #eee; }
-        .price { color: #e74c3c; font-weight: bold; font-size: 1.2em; margin: 10px 0; }
+        .product-card img { width: 100%; height: 220px; object-fit: cover; border-radius: 4px; }
+        .price { color: #e74c3c; font-weight: bold; font-size: 1.2em; }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 <header>
     <div onclick="showPage('products')" style="cursor:pointer; font-weight:bold; font-size:1.2em;">🐷 豬豬商城</div>
-    <nav>
+    <nav style="display: flex; align-items: center;">
+        <button class="btn-cart" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
         <span id="user-display" style="color:var(--primary); font-weight:bold; margin-right:10px;" class="hidden"></span>
         <button id="auth-nav-btn" class="submit-btn" style="width:auto; padding:5px 15px;" onclick="showPage('login')">登入/註冊</button>
     </nav>
@@ -34,6 +37,17 @@
     <div id="page-products">
         <h2 style="text-align:center;">🐷 熱門豬豬</h2>
         <div class="product-grid" id="product-list">載入中...</div>
+    </div>
+
+    <div id="page-cart" class="hidden">
+        <h2 style="text-align:center;">🛒 您的購物車</h2>
+        <div id="cart-items-list" class="auth-card" style="max-width: 500px;">
+            <p style="text-align:center;">目前沒有商品</p>
+        </div>
+        <div style="text-align:center; margin-top:20px;">
+            <button class="submit-btn" style="width:200px;" onclick="checkout()">前往結帳</button>
+            <p><a href="#" onclick="showPage('products')">繼續購物</a></p>
+        </div>
     </div>
 
     <div id="page-login" class="auth-card hidden">
@@ -50,40 +64,63 @@
         <div class="form-group"><input type="email" id="reg-email" placeholder="Email"></div>
         <div class="form-group"><input type="password" id="reg-password" placeholder="密碼"></div>
         <button class="submit-btn" onclick="apiRegister()">建立帳號</button>
-        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？回登入</a></p>
+        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">回登入</a></p>
     </div>
 </div>
 
 <script>
     const API_URL = "/api"; 
+    let cart = []; // 儲存購物車內容
 
     function showPage(p) { 
         document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); 
         document.getElementById('page-'+p).classList.remove('hidden'); 
+        if(p === 'cart') renderCart(); // 切換到購物車時刷新內容
     }
 
-    // 核心功能：載入商品並判斷按鈕狀態
     async function loadProducts() {
         try {
             const res = await fetch(`${API_URL}/products`);
             const data = await res.json();
-            
-            // 檢查右上角是否顯示「已登入」
             const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
             
-            const listContainer = document.getElementById('product-list');
-            listContainer.innerHTML = data.map(p => `
+            document.getElementById('product-list').innerHTML = data.map(p => `
                 <div class="product-card">
                     <img src="${p.image_url}">
                     <h3>${p.name}</h3>
                     <p class="price">NT$ ${p.price}</p>
-                    <button class="submit-btn" style="width:80%" onclick="${isLoggedIn ? "alert('成功加入購物車！')" : "alert('請先登入後再購買')" }">
+                    <button class="submit-btn" style="width:80%" onclick="handleAddToCart('${p.name}', ${p.price})">
                         ${isLoggedIn ? "加入購物車" : "請先登入"}
                     </button>
                 </div>`).join('');
-        } catch(e) { 
-            document.getElementById('product-list').innerText = "伺服器喚醒中，請稍後再試..."; 
+        } catch(e) { document.getElementById('product-list').innerText = "連線中..."; }
+    }
+
+    function handleAddToCart(name, price) {
+        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
+        if (!isLoggedIn) {
+            alert("請先登入！");
+            showPage('login');
+            return;
         }
+        cart.push({ name, price });
+        document.getElementById('cart-count').innerText = cart.length;
+        alert("已加入購物車！");
+    }
+
+    function renderCart() {
+        const list = document.getElementById('cart-items-list');
+        if (cart.length === 0) {
+            list.innerHTML = "<p style='text-align:center;'>購物車是空的</p>";
+            return;
+        }
+        let total = 0;
+        let html = cart.map(item => {
+            total += item.price;
+            return `<div class="cart-item"><span>${item.name}</span><span>NT$ ${item.price}</span></div>`;
+        }).join('');
+        html += `<div style="text-align:right; font-weight:bold; margin-top:10px;">總計：NT$ ${total}</div>`;
+        list.innerHTML = html;
     }
 
     async function apiLogin() {
@@ -97,20 +134,13 @@
             });
             const data = await res.json();
             if (res.ok) {
-                // 1. 更新 UI 狀態
                 document.getElementById('user-display').innerText = data.username + "(已登入)";
                 document.getElementById('user-display').classList.remove('hidden');
                 document.getElementById('auth-nav-btn').classList.add('hidden');
-                
-                // 2. 切換頁面
                 showPage('products');
-                
-                // 3. 重要：重新整理商品區，讓按鈕變回「加入購物車」
                 loadProducts(); 
-                
-                alert("登入成功！");
-            } else { alert("失敗: " + data.error); }
-        } catch(e) { alert("連線後端失敗"); }
+            } else { alert("錯誤: " + data.error); }
+        } catch(e) { alert("失敗"); }
     }
 
     async function apiRegister() {
@@ -123,17 +153,13 @@
                 headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify({ username, email, password }) 
             });
-            if (res.ok) { 
-                alert("註冊成功！"); 
-                showPage('login'); 
-            } else { 
-                const data = await res.json(); 
-                alert("失敗: " + data.error); 
-            }
-        } catch(e) { alert("無法連接伺服器"); }
+            if (res.ok) { alert("註冊成功！"); showPage('login'); } 
+            else { const data = await res.json(); alert("失敗: " + data.error); }
+        } catch(e) { alert("連線失敗"); }
     }
 
-    // 初始載入商品
+    function checkout() { alert("感謝購買！豬豬即將送到家。"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
+
     loadProducts();
 </script>
 </body>
