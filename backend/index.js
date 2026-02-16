@@ -15,24 +15,26 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 【重要修復】結帳 API 欄位對齊
+// 【結帳功能核心修復】
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total } = req.body;
   if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
-  
+
   try {
-    // 確保 total 為整數存入
+    // 強制轉換為整數
+    const numericTotal = parseInt(total);
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
-      [email, products, parseInt(total)]
+      [email, products, numericTotal]
     );
     res.json({ message: "結帳成功" });
   } catch (err) {
     console.error("結帳存檔失敗:", err.message);
-    res.status(500).json({ error: "伺服器存檔錯誤: " + err.message });
+    res.status(500).json({ error: "資料庫失敗: " + err.message });
   }
 });
 
+// 取得訂單紀錄
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
@@ -41,15 +43,16 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// 登入、產品與個人資料更新 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length > 0) {
       const valid = await bcrypt.compare(password, user.rows[0].password);
-      if (valid) { res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio }); }
-      else { res.status(401).json({ error: "密碼錯誤" }); }
-    } else { res.status(404).json({ error: "帳號不存在" }); }
+      if (valid) res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio });
+      else res.status(401).json({ error: "密碼錯誤" });
+    } else res.status(404).json({ error: "帳號不存在" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -58,7 +61,7 @@ app.post('/api/update-profile', async (req, res) => {
   try {
     if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
     if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
-    res.json({ message: "更新成功" });
+    res.json({ message: "成功" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -70,4 +73,4 @@ app.get('/api/products', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`伺服器運行中`));
+app.listen(PORT, () => console.log(`Server running`));
