@@ -3,32 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城</title>
+    <title>萌商城 - 刮刮樂修復版</title>
     <style>
         :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b91d1d; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
+        
+        /* 導覽列與 Logo */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
+        
+        /* 側邊選單 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
+
+        /* 右側紀錄 (隱藏) */
         #history-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: right 0.3s ease; padding: 25px; box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; }
         #history-panel.active { right: 0; }
+
+        /* 彈窗 UI 修復：加入關閉按鈕樣式 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; position: relative; max-height: 85vh; overflow-y: auto; text-align: center; }
-        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .qty-btn { background: #eee; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
-        .hidden { display: none !important; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
-        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; align-items: center; }
-        .edit-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; position: relative; max-height: 85vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; right: 20px; top: 20px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; }
 
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
         /* 刮刮樂動畫效果 */
         @keyframes shake-hard { 0%, 100% { transform: translate(0,0); } 10%, 30%, 50%, 70%, 90% { transform: translate(-4px, -2px); } 20%, 40%, 60%, 80% { transform: translate(4px, 2px); } }
-        .scratching-active { animation: shake-hard 0.2s infinite; background: #fff9c4 !important; border: 2px dashed var(--red) !important; }
+        .scratching-active { animation: shake-hard 0.2s infinite; background: #fff9c4 !important; border: 2px dashed var(--red) !important; color: var(--red) !important; font-weight: bold; }
+        
+        .card { background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
+        .hidden { display: none !important; }
+
+        /* 會員中心列表 */
+        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; align-items: center; }
+        .profile-row span { font-weight: bold; color: #888; }
+        .edit-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -50,7 +65,7 @@
 </div>
 
 <div id="history-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center;"><h3>🛍️ 購買紀錄</h3><button onclick="toggleH()">✕</button></div>
+    <div style="display:flex; justify-content:space-between; align-items:center;"><h3>🛍️ 購買紀錄</h3><button onclick="toggleH()" style="border:none; background:none; font-size:20px;">✕</button></div>
     <div id="h-list"></div>
 </div>
 
@@ -61,7 +76,9 @@
     <div id="page-login" class="hidden" style="padding:20px; text-align:center;"><input id="l-email" placeholder="Email" class="edit-input"><input id="l-pass" type="password" placeholder="密碼" class="edit-input"><button class="btn" onclick="login()">進入商城</button></div>
 </div>
 
-<div id="modal-user" class="modal"><div class="modal-card"><button onclick="closeAll()">✕</button><h3>會員中心</h3>
+<div id="modal-user" class="modal"><div class="modal-card">
+    <button class="close-btn" onclick="closeAll()">✕</button>
+    <h3>會員中心</h3>
     <div style="text-align:left; background:#f8f9fa; padding:20px; border-radius:15px;">
         <div class="profile-row"><span>帳號</span><b id="u-email"></b></div>
         <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
@@ -72,66 +89,118 @@
     <div id="edit-box" class="hidden"><input id="n-name" class="edit-input"><textarea id="n-bio" class="edit-input"></textarea><input id="n-pass" type="password" placeholder="新密碼" class="edit-input"><button onclick="updateProfile()" class="btn">儲存</button></div>
 </div></div>
 
-<div id="modal-scratch" class="modal"><div class="modal-card"><h2>🐍 蛇年大吉</h2><div id="prize" style="height:100px; display:flex; align-items:center; justify-content:center; border:2px dashed #ccc; font-size:20px;">等待開刮...</div><button onclick="playScratch()" class="btn">消耗 1 積分</button></div></div>
+<div id="modal-scratch" class="modal"><div class="modal-card">
+    <button class="close-btn" onclick="closeAll()">✕</button>
+    <h2>🐍 蛇年大吉</h2>
+    <div id="prize" style="height:120px; display:flex; align-items:center; justify-content:center; border:2px dashed #ccc; font-size:22px; margin:20px 0; border-radius:15px; background: #fff;">等待開刮...</div>
+    <button id="scratch-btn" onclick="playScratch()" class="btn">消耗 1 積分</button>
+</div></div>
 
-<audio id="s-scratch" src="https://assets.mixkit.co/sfx/preview/mixkit-scratching-a-surface-2987.mp3"></audio>
-<audio id="s-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
-<audio id="s-lose" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3"></audio>
+<audio id="s-scratch" src="https://assets.mixkit.co/sfx/preview/mixkit-scratching-a-surface-2987.mp3" preload="auto"></audio>
+<audio id="s-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+<audio id="s-lose" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3" preload="auto"></audio>
 
 <script>
     const API = "/api"; let products = [], cart = [], user = null, points = 0;
+    
+    // UI 控制
     function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
     function toggleH() { document.getElementById('history-panel').classList.toggle('active'); if(document.getElementById('history-panel').classList.contains('active')) loadHistory(); }
     function closeAll() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
     function openM(id) { if(!user && id!=='signin') return alert("請先登入"); toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); }
     function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); }
     
-    // 同步與更新
+    // 資料同步
     async function syncUserData(show) {
-        const res = await fetch(API + "/get-user", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { user = await res.json(); points = user.points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); if(show) alert("同步成功！"); }
+        if(!user) return;
+        try {
+            const res = await fetch(API + "/get-user", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
+            if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); if(show) alert("同步成功！積分：" + points); }
+            else if(show) alert("同步失敗，請稍後再試");
+        } catch(e) { if(show) alert("連線失敗，請檢查網路"); }
     }
     function refreshUser() { document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio || "尚無介紹"; document.getElementById('u-points').innerText = points; }
 
-    // 刮刮樂：增加緊張感
+    // 刮刮樂邏輯修復
     async function playScratch() {
-        if(points < 1) return alert("積分不足");
-        const box = document.getElementById('prize'); const s_s = document.getElementById('s-scratch');
-        box.innerText = "努力刮開中..."; box.classList.add('scratching-active'); s_s.play();
-        const [res, _] = await Promise.all([fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2000))]);
-        s_s.pause(); box.classList.remove('scratching-active');
-        if(res.ok) { 
-            const d = await res.json(); box.innerText = d.prizeName; points = d.newTotal; user.points = points; 
-            localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser();
-            if(d.prizeName.includes("銘謝")) document.getElementById('s-lose').play(); else document.getElementById('s-win').play();
+        if(points < 1) return alert("❌ 積分不足，請先去簽到！");
+        
+        const box = document.getElementById('prize');
+        const btn = document.getElementById('scratch-btn');
+        const s_s = document.getElementById('s-scratch');
+        
+        // 開始動畫與音效
+        btn.disabled = true;
+        btn.innerText = "刮開中...";
+        box.innerText = "努力刮開中...";
+        box.classList.add('scratching-active');
+        try { await s_s.play(); } catch(e) { console.log("音效播放被攔截"); }
+
+        try {
+            // API 請求 + 強制 2 秒懸念延遲
+            const [res, _] = await Promise.all([
+                fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }),
+                new Promise(r => setTimeout(r, 2000))
+            ]);
+            
+            s_s.pause(); s_s.currentTime = 0;
+            box.classList.remove('scratching-active');
+            btn.disabled = false;
+            btn.innerText = "消耗 1 積分";
+
+            if(res.ok) { 
+                const d = await res.json(); 
+                box.innerText = d.prizeName; 
+                points = Number(d.newTotal); user.points = points; 
+                localStorage.setItem('萌商城_user', JSON.stringify(user)); 
+                refreshUser();
+                
+                // 根據結果播放中獎/沒中獎音效
+                if(d.prizeName.includes("銘謝")) document.getElementById('s-lose').play(); 
+                else {
+                    document.getElementById('s-win').play();
+                    box.style.color = "var(--red)";
+                    box.style.fontWeight = "bold";
+                }
+            } else {
+                const d = await res.json();
+                alert("❌ " + (d.error || "系統忙碌中"));
+                box.innerText = "請再試一次";
+            }
+        } catch(e) { 
+            alert("❌ 連線錯誤，請確認後端部署成功"); 
+            box.classList.remove('scratching-active');
+            btn.disabled = false;
+            btn.innerText = "消耗 1 積分";
+            s_s.pause();
         }
     }
 
-    // 簽到與購物邏輯
+    // 簽到與其他功能
     async function doSignin() {
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { const d = await res.json(); points = d.points; user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); alert("簽到成功！"); toggleM(); }
+        if(res.ok) { const d = await res.json(); points = Number(d.points); user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); alert("✅ 簽到成功！獲得 10 積分"); toggleM(); }
         else alert((await res.json()).error);
     }
+
     function renderCart() {
         const t = cart.reduce((s,i)=>s+(i.price*i.qty),0); document.getElementById('total').innerText = t;
         document.getElementById('c-items').innerHTML = cart.map((i,idx)=>`<div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; margin-bottom:10px; border-radius:10px;">
-            <img src="${i.image_url}" width="50" height="50" style="border-radius:5px;">
+            <img src="${i.image_url}" width="50" height="50" style="border-radius:5px; object-fit:cover;">
             <div style="flex:1;"><b>${i.name}</b><br>$${i.price}</div>
-            <div><button class="qty-btn" onclick="updateQty(${idx},-1)">-</button> <span>${i.qty}</span> <button class="qty-btn" onclick="updateQty(${idx},1)">+</button></div>
+            <div><button onclick="updateQty(${idx},-1)">-</button> <span>${i.qty}</span> <button onclick="updateQty(${idx},1)">+</button></div>
         </div>`).join('') || "<p>購物車是空的</p>";
     }
     function updateQty(idx, c) { cart[idx].qty += c; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); updateCartCount(); }
     function updateCartCount() { document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
 
-    // 初始化與登入
     async function login() {
         const res = await fetch(API + "/login", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: document.getElementById('l-email').value, password: document.getElementById('l-pass').value}) });
-        if(res.ok) { user = await res.json(); points = user.points; localStorage.setItem('萌商城_user', JSON.stringify(user)); showPage('products'); } else alert("登入失敗");
+        if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('萌商城_user', JSON.stringify(user)); showPage('products'); } else alert("登入失敗");
     }
     async function load() { 
         products = await (await fetch(API + "/products")).json(); 
-        document.getElementById('page-products').innerHTML = products.map(p => `<div class="card" onclick="showDetail(${p.id})"><img src="${p.image_url}" style="width:100%; height:180px; object-fit:cover; border-radius:15px;"><div style="padding:10px;"><b>${p.name}</b><br><span style="color:var(--p); font-size:18px;">$${p.price}</span></div></div>`).join('');
+        document.getElementById('page-products').innerHTML = products.map(p => `<div class="card" onclick="showDetail(${p.id})"><img src="${p.image_url}" style="width:100%; height:180px; object-fit:cover; border-radius:15px;"><div style="padding:15px;"><b>${p.name}</b><br><span style="color:var(--p); font-size:18px;">$${p.price}</span></div></div>`).join('');
     }
     function showDetail(id) { const p = products.find(x=>x.id===id); document.getElementById('d-content').innerHTML = `<img src="${p.image_url}" width="100%" style="border-radius:15px;"><h2>${p.name}</h2><p>${p.description}</p><button class="btn" onclick="add(${p.id})">加入購物車</button>`; showPage('detail'); }
     function add(id) { const p = products.find(x=>x.id===id); const e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); updateCartCount(); alert("已加入購物車"); }
@@ -150,7 +219,7 @@
         </div>`).join('') || "<p>尚無紀錄</p>";
     }
 
-    window.onload = () => { const s = localStorage.getItem('萌商城_user'); if(s) { user = JSON.parse(s); points = user.points; showPage('products'); syncUserData(false); } else showPage('login'); load(); };
+    window.onload = () => { const s = localStorage.getItem('萌商城_user'); if(s) { user = JSON.parse(s); points = Number(user.points || 0); showPage('products'); syncUserData(false); } else showPage('login'); load(); };
 </script>
 </body>
 </html>
