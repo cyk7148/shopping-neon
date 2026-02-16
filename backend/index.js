@@ -129,19 +129,31 @@ app.get('/api/orders', async (req, res) => {
 
 
 // 8. 獲取最新用戶資料 (新增這個 API，解決積分不同步的問題)
-app.post('/api/get-user', async (req, res) => {
+// 每日簽到 (資料庫級別判定 - 解決無法簽到問題)
+app.post('/api/daily-signin', async (req, res) => {
   const { email } = req.body;
   try {
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length > 0) {
-        res.json({ 
-            username: user.rows[0].username, 
-            email: user.rows[0].email, 
-            bio: user.rows[0].bio || '尚無介紹',
-            points: Number(user.rows[0].points || 0) 
-        });
-    } else res.status(404).send();
-  } catch (err) { res.status(500).send(); }
+    // 直接下達指令：只有在「沒簽過」或「上次簽到不是今天」的情況下才更新
+    const result = await pool.query(
+        `UPDATE users 
+         SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
+         WHERE email = $1 
+         AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, 
+        [email]
+    );
+
+    // 如果更新成功，rowCount 會是 1
+    if (result.rowCount > 0) {
+        res.json({ message: "OK" });
+    } else {
+        // 如果 rowCount 是 0，代表條件不符 (今天已經簽過)
+        res.status(400).json({ error: "今天已經簽到過了喔！明天再來吧～" });
+    }
+  } catch (err) { 
+    console.error("簽到錯誤:", err);
+    res.status(500).json({ error: "簽到系統異常，請洽管理員" }); 
+  }
 });
+
 
 app.listen(process.env.PORT || 3000, () => console.log('Server Ready'));
