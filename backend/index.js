@@ -15,7 +15,28 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 登入 API
+// 【新增】結帳 API：將購物車內容存入資料庫
+app.post('/api/checkout', async (req, res) => {
+  const { email, products, total } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
+      [email, products, total]
+    );
+    res.json({ message: "Order created" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 【新增】取得訂單 API：讓會員中心能讀取
+app.get('/api/orders', async (req, res) => {
+  const email = req.query.email;
+  try {
+    const result = await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [email]);
+    res.json(result.rows);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 登入與更新個人資料 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -23,17 +44,12 @@ app.post('/api/login', async (req, res) => {
     if (user.rows.length > 0) {
       const valid = await bcrypt.compare(password, user.rows[0].password);
       if (valid) {
-        res.json({ 
-          username: user.rows[0].username, 
-          email: user.rows[0].email,
-          bio: user.rows[0].bio || "這是一個神祕的萌商城會員" 
-        });
-      } else { res.status(401).json({ error: "密碼錯誤" }); }
-    } else { res.status(404).json({ error: "帳號不存在" }); }
+        res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio });
+      } else { res.status(401).json({ error: "Wrong password" }); }
+    } else { res.status(404).json({ error: "User not found" }); }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 更新個人資料 API (暱稱與介紹)
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio } = req.body;
   try {
