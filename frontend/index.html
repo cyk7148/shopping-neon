@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城 - 蛇年大慶版</title>
+    <title>萌商城 - 會員功能修復版</title>
     <style>
-        :root { --p: #7db9a1; --bg: #fdfaf7; --shadow: 0 10px 30px rgba(0,0,0,0.05); --red: #b91d1d; --gold: #ffd700; }
+        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b91d1d; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
         /* 導覽列 */
@@ -17,20 +17,24 @@
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* 購買紀錄側欄 */
+        /* 購買紀錄 */
         #history-panel { position: fixed; right: -320px; top: 0; width: 320px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 25px; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; }
         #history-panel.active { right: 0; }
 
-        /* 彈窗 (解決鍵盤遮擋) */
+        /* 彈窗優化 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 380px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
 
-        .card { background: white; border-radius: 20px; box-shadow: var(--shadow); transition: 0.3s; cursor: pointer; }
-        .card:hover { transform: translateY(-8px); }
-        .btn { background: var(--p); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; }
+        .card:hover { transform: translateY(-5px); }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
+        
+        /* 會員資料列樣式 */
+        .profile-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 15px; }
+        .profile-row b { color: #333; }
     </style>
 </head>
 <body>
@@ -43,11 +47,11 @@
 <div id="mask" class="mask" onclick="toggleM()"></div>
 
 <div id="menu" class="drawer">
-    <div onclick="openM('scratch')" style="padding:15px; cursor:pointer;">🧧 蛇年刮刮樂</div>
-    <div onclick="openM('signin')" style="padding:15px; cursor:pointer;">📅 每日簽到</div>
-    <div onclick="showPage('cart')" style="padding:15px; cursor:pointer;">🛒 購物車 (<span id="count">0</span>)</div>
-    <div onclick="toggleH()" style="padding:15px; cursor:pointer;">📜 購買紀錄</div>
-    <div onclick="openM('user')" style="padding:15px; cursor:pointer;">👤 會員中心</div>
+    <div onclick="openM('scratch')" style="padding:15px; cursor:pointer; border-bottom:1px solid #f9f9f9;">🧧 蛇年刮刮樂</div>
+    <div onclick="openM('signin')" style="padding:15px; cursor:pointer; border-bottom:1px solid #f9f9f9;">📅 每日簽到</div>
+    <div onclick="showPage('cart')" style="padding:15px; cursor:pointer; border-bottom:1px solid #f9f9f9;">🛒 購物車 (<span id="count">0</span>)</div>
+    <div onclick="toggleH()" style="padding:15px; cursor:pointer; border-bottom:1px solid #f9f9f9;">📜 購買紀錄</div>
+    <div onclick="openM('user')" style="padding:15px; cursor:pointer; border-bottom:1px solid #f9f9f9;">👤 會員中心</div>
     <div onclick="logout()" style="padding:15px; color:var(--red); margin-top:50px; cursor:pointer;">🚪 登出</div>
 </div>
 
@@ -78,33 +82,39 @@
     <div id="page-login" class="hidden" style="padding:20px; text-align:center;">
         <div class="card" style="max-width:350px; margin:auto; padding:40px;">
             <h2>登入 / 註冊</h2>
-            <input id="l-email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input id="l-pass" type="password" placeholder="密碼" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input id="l-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #eee; border-radius:8px;">
+            <input id="l-pass" type="password" placeholder="密碼" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #eee; border-radius:8px;">
             <button class="btn" onclick="login()">進入商城</button>
         </div>
     </div>
 </div>
 
 <div id="modal-user" class="modal"><div class="modal-card">
-    <button onclick="closeAll()" style="position:absolute; right:20px; top:20px; border:none; background:none; font-size:20px;">✕</button>
-    <h3>會員中心</h3>
-    <div style="text-align:left; background:#f9f9f9; padding:20px; border-radius:20px;">
-        <p>帳號：<b id="u-email"></b></p>
-        <p>暱稱：<b id="u-name"></b></p>
-        <p>積分：<b id="u-points" style="color:orange;">0</b></p>
+    <button onclick="closeAll()" style="position:absolute; right:15px; top:15px; border:none; background:none; font-size:20px; cursor:pointer;">✕</button>
+    <h3 style="margin-bottom:20px;">會員中心</h3>
+    
+    <div style="text-align:left; background:#f8f9fa; padding:20px; border-radius:15px; margin-bottom:15px;">
+        <div class="profile-row"><span>帳號</span><b id="u-email"></b></div>
+        <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
+        <div class="profile-row"><span>密碼</span><b>********</b></div>
+        <div class="profile-row" style="border-bottom:none;"><span>積分</span><b id="u-points" style="color:orange;">0</b></div>
     </div>
-    <button class="btn" onclick="document.getElementById('edit-box').classList.toggle('hidden')">編輯暱稱</button>
-    <div id="edit-box" class="hidden" style="margin-top:10px;">
-        <input id="n-name" placeholder="新暱稱" style="width:100%; padding:10px; margin-bottom:10px;">
-        <button onclick="updateName()" class="btn">儲存</button>
+
+    <button class="btn" style="background:#eee; color:#333;" onclick="toggleEditBox()">編輯資料</button>
+    
+    <div id="edit-box" class="hidden" style="margin-top:15px; background:#fff; padding:10px; border-radius:10px; border:1px solid #eee;">
+        <input id="n-name" placeholder="輸入新暱稱" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box; border:1px solid #ddd; border-radius:8px;">
+        <button onclick="updateName()" class="btn">確認修改</button>
     </div>
 </div></div>
 
-<div id="modal-scratch" class="modal"><div class="modal-card" style="background:var(--red); color:white;">
-    <button onclick="closeAll()" style="position:absolute; right:20px; top:20px; border:none; background:none; color:white; font-size:20px;">✕</button>
+<div id="modal-scratch" class="modal"><div class="modal-card" style="background:linear-gradient(135deg, #b91d1d, #7f1d1d); color:white; border:2px solid var(--gold);">
+    <button onclick="closeAll()" style="position:absolute; right:15px; top:15px; border:none; background:none; color:white; font-size:20px; cursor:pointer;">✕</button>
     <h2>🐍 蛇年大吉</h2>
-    <div style="background:white; color:black; height:120px; line-height:120px; margin:15px 0; border-radius:15px; font-weight:bold; font-size:20px;" id="prize">等待開刮...</div>
-    <button onclick="playScratch()" style="background:var(--gold); color:var(--red); padding:15px; border-radius:15px; width:100%; border:none; font-weight:900;">消耗 10 積分</button>
+    <div style="background:white; color:black; height:100px; display:flex; align-items:center; justify-content:center; margin:20px 0; border-radius:15px; font-weight:bold; font-size:22px; border:2px dashed var(--gold);" id="prize">
+        等待開刮...
+    </div>
+    <button onclick="playScratch()" style="background:var(--gold); color:#b91d1d; padding:15px; border-radius:12px; width:100%; border:none; font-weight:900; font-size:18px;">消耗 10 積分</button>
 </div></div>
 
 <script>
@@ -127,6 +137,13 @@
         if(p==='cart') renderCart();
         if(document.getElementById('menu').classList.contains('active')) toggleM();
     }
+    function toggleEditBox() {
+        const box = document.getElementById('edit-box');
+        box.classList.toggle('hidden');
+        if(!box.classList.contains('hidden')) {
+            document.getElementById('n-name').value = user.username; // 預填舊暱稱
+        }
+    }
 
     // 資料載入
     async function load() {
@@ -135,19 +152,19 @@
             products = await res.json();
             document.getElementById('page-products').innerHTML = products.map(p => `
                 <div class="card" onclick="showDetail(${p.id})">
-                    <img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover;">
-                    <div style="padding:15px;"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>
+                    <img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover; border-radius:20px 20px 0 0;">
+                    <div style="padding:15px;"><h3>${p.name}</h3><b style="color:var(--p); font-size:18px;">$${p.price}</b></div>
                 </div>`).join('');
-        } catch(e) { console.error("Loading Error"); }
+        } catch(e) { console.error("Error loading products"); }
     }
 
-    // 詳情與購物
+    // 功能邏輯
     function showDetail(id) {
         const p = products.find(x=>x.id===id);
         document.getElementById('d-content').innerHTML = `
             <img src="${p.image_url}" style="width:100%; border-radius:20px; margin-bottom:20px;">
-            <h2>${p.name}</h2><b style="color:var(--p); font-size:24px;">$${p.price}</b>
-            <p style="text-align:left; color:#666; margin-top:20px;">${p.description}</p>
+            <h2>${p.name}</h2><b style="color:var(--p); font-size:28px;">$${p.price}</b>
+            <p style="text-align:left; color:#666; margin-top:20px; line-height:1.6;">${p.description}</p>
             <button class="btn" onclick="add(${p.id})">加入購物車</button>`;
         showPage('detail');
     }
@@ -155,16 +172,16 @@
         if(!user) return alert("請先登入");
         cart.push(products.find(x=>x.id===id)); 
         document.getElementById('count').innerText = cart.length; 
-        alert("已加入"); 
+        alert("已加入購物車"); 
     }
     function renderCart() {
         const t = cart.reduce((s,i)=>s+i.price,0);
         document.getElementById('total').innerText = t;
         document.getElementById('reward').innerText = Math.floor(t*0.01);
-        document.getElementById('c-items').innerHTML = cart.map(i=>`<div style="padding:10px; border-bottom:1px solid #eee;">${i.name} - $${i.price}</div>`).join('') || "空的";
+        document.getElementById('c-items').innerHTML = cart.map(i=>`<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><span>${i.name}</span><b>$${i.price}</b></div>`).join('') || "<p style='text-align:center; color:#999;'>購物車是空的</p>";
     }
 
-    // API 互動
+    // API 交互
     async function login() {
         const e = document.getElementById('l-email').value, p = document.getElementById('l-pass').value;
         const res = await fetch(API + "/login", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email:e, password:p}) });
@@ -172,36 +189,50 @@
             user = await res.json(); points = Number(user.points);
             localStorage.setItem('萌商城_user', JSON.stringify(user));
             showPage('products');
-        } else alert("登入失敗");
+        } else alert("登入失敗，請檢查帳號密碼");
     }
     async function checkout() {
         if(cart.length===0) return;
         const t = document.getElementById('total').innerText;
-        const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: "商品", total: t, image_url: cart[0].image_url}) });
-        if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳完成，積分已入帳"); cart=[]; document.getElementById('count').innerText=0; showPage('products'); }
+        const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: "商品組合", total: t, image_url: cart[0].image_url}) });
+        if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳成功！獲得 " + d.reward + " 積分"); cart=[]; document.getElementById('count').innerText=0; showPage('products'); }
     }
     async function playScratch() {
-        if(points<10) return alert("積分不足 (需10點)");
+        if(points<10) return alert("積分不足 (需要 10 點)");
         const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
         const d = await res.json();
         document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
     }
     async function doSignin() {
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { points += 10; alert("簽到成功 +10分"); toggleM(); }
+        if(res.ok) { points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); }
     }
+    
+    // 編輯暱稱功能
     async function updateName() {
         const n = document.getElementById('n-name').value;
+        if(!n) return alert("請輸入新暱稱");
         const res = await fetch(API + "/update-profile", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, username: n}) });
-        if(res.ok) { user.username = n; refreshUser(); alert("已修改"); }
+        if(res.ok) { 
+            user.username = n; 
+            localStorage.setItem('萌商城_user', JSON.stringify(user)); // 同步更新本地存儲
+            refreshUser(); 
+            alert("暱稱修改成功！"); 
+            document.getElementById('edit-box').classList.add('hidden');
+        }
     }
+    
     async function loadHistory() {
         const res = await fetch(API + `/orders?email=${user.email}`);
         const d = await res.json();
-        document.getElementById('h-list').innerHTML = d.map(o=>`<div style="display:flex; gap:10px; margin-bottom:10px;"><img src="${o.image_url}" width="50"><div><b>$${o.total_price}</b><br><small>${o.order_date.split('T')[0]}</small></div></div>`).join('');
+        document.getElementById('h-list').innerHTML = d.map(o=>`
+            <div style="display:flex; gap:15px; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                <img src="${o.image_url}" width="50" style="border-radius:8px;">
+                <div><b style="color:var(--p);">$${o.total_price}</b><br><small style="color:#888;">${o.order_date.split('T')[0]}</small></div>
+            </div>`).join('') || "<p>尚無購買紀錄</p>";
     }
 
-    // 狀態更新 (消滅 NaN)
+    // 狀態管理
     function refreshUser() {
         document.getElementById('u-email').innerText = user.email;
         document.getElementById('u-name').innerText = user.username;
