@@ -6,32 +6,50 @@
     <title>購物商城</title>
     <style>
         :root { --primary: #67b18a; --dark: #34495e; --bg: #f9f9f9; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; }
-        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; }
+        
+        /* 導覽列 */
+        header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 20px; font-weight: bold; cursor: pointer; }
+        nav { display: flex; gap: 15px; align-items: center; }
+        .user-status { color: var(--primary); font-weight: bold; font-size: 14px; }
+        .btn-auth { background: var(--dark); color: white; padding: 6px 15px; border-radius: 20px; border: none; cursor: pointer; }
+
+        /* 主容器 */
+        .container { max-width: 900px; margin: 30px auto; padding: 0 15px; }
+        .section-title { text-align: center; font-size: 24px; margin: 40px 0; }
         .hidden { display: none; }
-        .auth-card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); max-width: 350px; margin: 0 auto; }
+
+        /* 登入註冊卡片 */
+        .auth-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); max-width: 400px; margin: 0 auto; }
         .form-group { margin-bottom: 15px; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-        .product-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .product-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+        .submit-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+
+        /* 商品展示 */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .product-card h3 { margin: 15px 0 5px; }
+        .price { color: #e74c3c; font-weight: bold; font-size: 18px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
+
 <header>
-    <div onclick="showPage('products')" style="cursor:pointer; font-weight:bold;">🛒 購物商城</div>
+    <div class="logo" onclick="showPage('products')">🛒 購物商城</div>
     <nav>
-        <span id="user-display" style="color:var(--primary); font-weight:bold; margin-right:10px;" class="hidden"></span>
-        <button id="auth-nav-btn" class="submit-btn" style="width:auto; padding:5px 15px;" onclick="showPage('login')">登入/註冊</button>
+        <span id="user-display" class="user-status hidden"></span>
+        <button id="auth-nav-btn" class="btn-auth" onclick="showPage('login')">登入 / 註冊</button>
     </nav>
 </header>
 
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center;">熱門商品</h2>
-        <div class="product-grid" id="product-list">載入中...</div>
+        <h2 class="section-title">🛍️ 熱門商品</h2>
+        <div class="product-grid" id="product-list">
+            <p style="text-align:center;">商品載入中，請稍候並重新整理...</p>
+        </div>
     </div>
 
     <div id="page-login" class="auth-card hidden">
@@ -39,7 +57,7 @@
         <div class="form-group"><input type="email" id="login-email" placeholder="Email"></div>
         <div class="form-group"><input type="password" id="login-password" placeholder="密碼"></div>
         <button class="submit-btn" onclick="apiLogin()">確認登入</button>
-        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('register')">還沒帳號？點此註冊</a></p>
+        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('register')">還沒有帳號？點此註冊</a></p>
     </div>
 
     <div id="page-register" class="auth-card hidden">
@@ -48,50 +66,63 @@
         <div class="form-group"><input type="email" id="reg-email" placeholder="Email"></div>
         <div class="form-group"><input type="password" id="reg-password" placeholder="密碼"></div>
         <button class="submit-btn" onclick="apiRegister()">建立帳號</button>
-        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？點此登入</a></p>
+        <p style="text-align:center; font-size:14px;"><a href="#" onclick="showPage('login')">已有帳號？回登入</a></p>
     </div>
 </div>
 
 <script>
-    // 關鍵：使用相對路徑連接 Render 後端
+    // 使用相對路徑，讓前端與後端整合在同一個網址
     const API_URL = "/api"; 
 
-    function showPage(p) { 
-        document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); 
-        document.getElementById('page-'+p).classList.remove('hidden'); 
+    function showPage(pageId) {
+        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById('page-' + pageId).classList.remove('hidden');
     }
 
+    // 自動執行：獲取商品列表
     async function loadProducts() {
         try {
             const res = await fetch(`${API_URL}/products`);
-            const data = await res.json();
-            document.getElementById('product-list').innerHTML = data.map(p => `
+            const products = await res.json();
+            const list = document.getElementById('product-list');
+            
+            if (products.length === 0) {
+                list.innerHTML = "<p style='text-align:center;'>資料庫中目前沒有商品</p>";
+                return;
+            }
+
+            list.innerHTML = products.map(p => `
                 <div class="product-card">
-                    <img src="${p.image_url || 'https://via.placeholder.com/200'}">
+                    <img src="${p.image_url || 'https://via.placeholder.com/400x300'}" alt="${p.name}">
                     <h3>${p.name}</h3>
-                    <p style="color:red; font-weight:bold;">NT$ ${p.price}</p>
-                    <button class="submit-btn" onclick="alert('已加入購物車')">加入購物車</button>
-                </div>`).join('');
-        } catch(e) { document.getElementById('product-list').innerText = "伺服器啟動中，請稍後並重新整理"; }
+                    <p class="price">NT$ ${p.price}</p>
+                    <button class="submit-btn" style="width:80%" onclick="alert('請先登入後再購買')">加入購物車</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error("載入失敗:", err);
+            document.getElementById('product-list').innerHTML = "<p style='text-align:center;'>伺服器啟動中（約需 50 秒），請重新整理頁面...</p>";
+        }
     }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         try {
-            const res = await fetch(`${API_URL}/login`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ email, password }) 
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
             });
             const data = await res.json();
             if (res.ok) {
-                document.getElementById('user-display').innerText = data.username + "(已登入)";
+                alert("登入成功！");
+                document.getElementById('user-display').innerText = `${data.username}(已登入)`;
                 document.getElementById('user-display').classList.remove('hidden');
                 document.getElementById('auth-nav-btn').classList.add('hidden');
                 showPage('products');
             } else { alert("登入失敗: " + data.error); }
-        } catch(e) { alert("連線後端失敗"); }
+        } catch (err) { alert("無法連接後端"); }
     }
 
     async function apiRegister() {
@@ -99,17 +130,19 @@
         const email = document.getElementById('reg-email').value;
         const password = document.getElementById('reg-password').value;
         try {
-            const res = await fetch(`${API_URL}/register`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ username, email, password }) 
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
             });
-            if (res.ok) { alert("註冊成功！"); showPage('login'); } 
+            if (res.ok) { alert("註冊成功！請直接登入"); showPage('login'); } 
             else { const data = await res.json(); alert("失敗: " + data.error); }
-        } catch(e) { alert("無法連接伺服器"); }
+        } catch (err) { alert("註冊失敗，請確認後端已啟動"); }
     }
 
+    // --- 重點：頁面一載入即執行 ---
     loadProducts();
 </script>
+
 </body>
 </html>
