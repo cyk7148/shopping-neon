@@ -7,52 +7,33 @@
     <style>
         :root { --primary: #67b18a; --warning: #f39c12; --bg: #fdfdfd; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; }
-        
-        /* 頂部導覽列 */
-        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .logo { font-size: 24px; font-weight: bold; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top:0; z-index:100; }
+        .logo { font-size: 24px; font-weight: bold; cursor: pointer; }
         .nav-right { display: flex; align-items: center; gap: 15px; }
-        
-        /* 圖片中的黃色購物車按鈕 */
-        .btn-cart-header { background: var(--warning); color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold; }
-        .user-status { color: var(--primary); font-weight: bold; }
-        .btn-logout { background: #eee; border: none; padding: 5px 15px; border-radius: 15px; cursor: pointer; font-size: 14px; }
-
+        .btn-cart-header { background: var(--warning); color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none; }
-
-        /* 購物車清單格式 */
-        .cart-title { font-size: 28px; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
-        .cart-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .cart-item { display: flex; align-items: center; padding: 20px 0; border-bottom: 1px solid #f0f0f0; gap: 20px; position: relative; }
-        .item-img { width: 80px; height: 80px; border: 1px solid #eee; border-radius: 8px; object-fit: cover; }
-        .item-info { flex: 1; }
-        .item-name { font-size: 18px; font-weight: bold; margin: 0; }
-        .item-price-sub { color: #888; font-size: 14px; margin-top: 5px; }
         
-        /* 數量控制器 */
-        .quantity-control { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; }
-        .quantity-control button { background: #f8f8f8; border: none; padding: 5px 12px; cursor: pointer; }
-        .quantity-control span { padding: 0 15px; font-weight: bold; }
-
-        .item-total-price { color: #e74c3c; font-weight: bold; font-size: 18px; width: 120px; text-align: right; }
-        .btn-remove { color: #ccc; cursor: pointer; font-size: 20px; margin-left: 15px; border: none; background: none; }
-
-        /* 底部結帳區 */
-        .cart-footer { margin-top: 30px; text-align: right; }
-        .total-amount-label { font-size: 20px; font-weight: bold; }
-        .total-amount-val { color: #e74c3c; font-size: 24px; }
-        .btn-checkout { background: var(--primary); color: white; border: none; padding: 12px 40px; border-radius: 8px; font-size: 18px; cursor: pointer; margin-top: 15px; }
-
-        /* 商品方格頁面 */
+        /* 商品方格 */
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; }
+        .product-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; cursor: pointer; transition: 0.3s; }
+        .product-card:hover { transform: translateY(-5px); }
         .product-card img { width: 100%; height: 200px; object-fit: cover; }
-        .add-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 80%; }
         
-        /* 登入註冊卡片 */
-        .auth-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; text-align: center; }
-        .auth-card input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        /* 商品詳情頁樣式 */
+        .detail-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 20px; }
+        .detail-img { width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; background: #f9f9f9; }
+        .detail-info h2 { font-size: 28px; margin: 0; }
+        .detail-price { color: #e74c3c; font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .detail-desc { color: #555; line-height: 1.6; font-size: 16px; border-top: 1px solid #eee; pt: 15px; }
+        
+        /* 按鈕樣式 */
+        .submit-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
+        .back-link { text-align: center; margin-top: 20px; color: #888; cursor: pointer; }
+        
+        /* 購物車與註冊登入 (維持之前的樣式) */
+        .cart-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; gap: 15px; }
+        .item-img-small { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -60,185 +41,120 @@
 <header>
     <div class="logo" onclick="showPage('products')">🐷 豬豬商城</div>
     <div class="nav-right">
-        <button class="btn-cart-header" onclick="showPage('cart')">
-            🛒 購物車 (<span id="cart-count">0</span>)
-        </button>
-        <span id="user-display" class="user-status hidden"></span>
-        <button id="logout-btn" class="btn-logout hidden" onclick="location.reload()">登出</button>
-        <button id="login-nav-btn" class="btn-logout" onclick="showPage('login')">登入</button>
+        <button class="btn-cart-header" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
+        <span id="user-display" class="hidden"></span>
+        <button id="login-nav-btn" onclick="showPage('login')">登入</button>
     </div>
 </header>
 
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center; margin-bottom:40px;">🛒 精選豬豬商品</h2>
+        <h2 style="text-align:center;">🛒 精選商品 (點擊圖片看詳情)</h2>
         <div class="product-grid" id="product-list">載入中...</div>
     </div>
 
+    <div id="page-detail" class="hidden">
+        <div class="detail-card" id="detail-content">
+            </div>
+        <div class="back-link" onclick="showPage('products')">← 回商品列表</div>
+    </div>
+
     <div id="page-cart" class="hidden">
-        <h2 class="cart-title">🛒 購物車清單</h2>
-        <div class="cart-card">
-            <div id="cart-items-container">
-                <p style="text-align:center; color:#999;">購物車目前沒有商品</p>
-            </div>
-            
-            <div class="cart-footer">
-                <div class="total-amount-label">總金額: <span class="total-amount-val">NT$ <span id="cart-total">0</span></span></div>
-                <button class="btn-checkout" onclick="checkout()">去結帳</button>
-            </div>
+        <h2>🛒 購物車清單</h2>
+        <div id="cart-items-container" style="background:white; padding:20px; border-radius:10px;"></div>
+        <button class="submit-btn" style="margin-top:20px;" onclick="alert('結帳成功！')">立即結帳</button>
+    </div>
+
+    <div id="page-login" class="hidden">
+        <div style="background:white; padding:30px; border-radius:10px; text-align:center;">
+            <h2>會員登入</h2>
+            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="password" id="login-password" placeholder="密碼" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="submit-btn" onclick="apiLogin()">登入</button>
         </div>
-        <p style="text-align:center; margin-top:20px;">
-            <a href="#" onclick="showPage('products')" style="color:#888;">回商城繼續逛</a>
-        </p>
-    </div>
-
-    <div id="page-login" class="auth-card hidden">
-        <h2>會員登入</h2>
-        <input type="email" id="login-email" placeholder="請輸入 Email">
-        <input type="password" id="login-password" placeholder="請輸入密碼">
-        <button class="add-btn" onclick="apiLogin()">確認登入</button>
-        <p style="font-size:14px; margin-top:15px;">沒有帳號？ <a href="#" onclick="showPage('register')">點此註冊</a></p>
-    </div>
-
-    <div id="page-register" class="auth-card hidden">
-        <h2>註冊帳號</h2>
-        <input type="text" id="reg-name" placeholder="您的暱稱">
-        <input type="email" id="reg-email" placeholder="Email">
-        <input type="password" id="reg-password" placeholder="密碼">
-        <button class="add-btn" onclick="apiRegister()">建立帳號並登入</button>
-        <p style="font-size:14px; margin-top:15px;"><a href="#" onclick="showPage('login')">已有帳號？回登入</a></p>
     </div>
 </div>
 
 <script>
     const API_URL = "/api"; 
-    let cart = []; 
+    let allProducts = []; // 暫存所有商品資料
+    let cart = [];
 
     function showPage(p) {
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('page-' + p).classList.remove('hidden');
-        if (p === 'cart') renderCart();
+        if(p === 'cart') renderCart();
     }
 
     async function loadProducts() {
-        try {
-            const res = await fetch(`${API_URL}/products`);
-            const data = await res.json();
-            const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
-            
-            document.getElementById('product-list').innerHTML = data.map(p => `
-                <div class="product-card">
-                    <img src="${p.image_url}">
-                    <h3>${p.name}</h3>
-                    <p class="price">NT$ ${p.price}</p>
-                    <button class="add-btn" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
-                        ${isLoggedIn ? "加入購物車" : "請先登入"}
-                    </button>
-                </div>`).join('');
-        } catch(e) { console.error(e); }
+        const res = await fetch(`${API_URL}/products`);
+        allProducts = await res.json();
+        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
+        
+        document.getElementById('product-list').innerHTML = allProducts.map(p => `
+            <div class="product-card" onclick="showDetail(${p.id})">
+                <img src="${p.image_url}">
+                <h3>${p.name}</h3>
+                <p style="color:#e74c3c; font-weight:bold;">NT$ ${p.price}</p>
+                <p style="font-size:12px; color:#999;">點擊查看詳情</p>
+            </div>`).join('');
+    }
+
+    // 點開詳情頁的函式
+    function showDetail(id) {
+        const p = allProducts.find(item => item.id === id);
+        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
+        
+        document.getElementById('detail-content').innerHTML = `
+            <img src="${p.image_url}" class="detail-img">
+            <div class="detail-info">
+                <h2>${p.name}</h2>
+                <p class="detail-price">價格：NT$ ${p.price}</p>
+                <div class="detail-desc">
+                    <p><strong>商品介紹：</strong></p>
+                    <p>${p.description || "目前尚無詳細介紹。"}</p>
+                </div>
+                <button class="submit-btn" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
+                    ${isLoggedIn ? "加入購物車" : "請先登入後再購買"}
+                </button>
+            </div>
+        `;
+        showPage('detail');
     }
 
     function addToCart(name, price, img) {
-        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
-        if (!isLoggedIn) { alert("請先登入後再購買！"); showPage('login'); return; }
-        
-        const exist = cart.find(item => item.name === name);
-        if (exist) { exist.qty++; } else { cart.push({ name, price, img, qty: 1 }); }
-        
-        updateCartCount();
-        alert(`已將 ${name} 加入購物車`);
-    }
-
-    function updateCartCount() {
-        const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-        document.getElementById('cart-count').innerText = totalQty;
+        if (document.getElementById('user-display').classList.contains('hidden')) { alert("請先登入！"); showPage('login'); return; }
+        cart.push({ name, price, img, qty: 1 });
+        document.getElementById('cart-count').innerText = cart.length;
+        alert("已加入購物車！");
     }
 
     function renderCart() {
         const container = document.getElementById('cart-items-container');
-        if (cart.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>購物車是空的</p>";
-            document.getElementById('cart-total').innerText = "0";
-            return;
-        }
-
-        let total = 0;
-        container.innerHTML = cart.map((item, index) => {
-            const subtotal = item.price * item.qty;
-            total += subtotal;
-            return `
-                <div class="cart-item">
-                    <img src="${item.img}" class="item-img">
-                    <div class="item-info">
-                        <p class="item-name">${item.name}</p>
-                        <p class="item-price-sub">單價: $${item.price}</p>
-                    </div>
-                    <div class="quantity-control">
-                        <button onclick="changeQty(${index}, -1)">-</button>
-                        <span>${item.qty}</span>
-                        <button onclick="changeQty(${index}, 1)">+</button>
-                    </div>
-                    <div class="item-total-price">NT$ ${subtotal}</div>
-                    <button class="btn-remove" onclick="removeItem(${index})">×</button>
-                </div>
-            `;
-        }).join('');
-        document.getElementById('cart-total').innerText = total;
-    }
-
-    function changeQty(index, delta) {
-        cart[index].qty += delta;
-        if (cart[index].qty < 1) cart[index].qty = 1;
-        renderCart();
-        updateCartCount();
-    }
-
-    function removeItem(index) {
-        cart.splice(index, 1);
-        renderCart();
-        updateCartCount();
-    }
-
-    function checkout() {
-        if (cart.length === 0) return alert("購物車裡沒東西喔！");
-        alert("下單成功！豬豬很快就會送到！");
-        cart = [];
-        updateCartCount();
-        showPage('products');
+        if(cart.length === 0) { container.innerHTML = "購物車空空的"; return; }
+        container.innerHTML = cart.map(item => `
+            <div class="cart-item">
+                <img src="${item.img}" class="item-img-small">
+                <div style="flex:1;">${item.name}</div>
+                <div>NT$ ${item.price}</div>
+            </div>`).join('');
     }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        try {
-            const res = await fetch(`${API_URL}/login`, { 
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ email, password }) 
-            });
+        const res = await fetch(`${API_URL}/login`, { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ email, password }) 
+        });
+        if (res.ok) {
             const data = await res.json();
-            if (res.ok) {
-                document.getElementById('user-display').innerText = data.username + "(已登入)";
-                document.getElementById('user-display').classList.remove('hidden');
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('login-nav-btn').classList.add('hidden');
-                showPage('products');
-                loadProducts();
-            } else { alert("登入失敗: " + data.error); }
-        } catch(e) { alert("無法連線伺服器"); }
-    }
-
-    async function apiRegister() {
-        const username = document.getElementById('reg-name').value;
-        const email = document.getElementById('reg-email').value;
-        const password = document.getElementById('reg-password').value;
-        try {
-            const res = await fetch(`${API_URL}/register`, { 
-                method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ username, email, password }) 
-            });
-            if (res.ok) { alert("註冊成功！"); apiLogin(); } 
-            else { const data = await res.json(); alert("錯誤: " + data.error); }
-        } catch(e) { alert("連線失敗"); }
+            document.getElementById('user-display').innerText = data.username + "(已登入)";
+            document.getElementById('user-display').classList.remove('hidden');
+            document.getElementById('login-nav-btn').classList.add('hidden');
+            showPage('products');
+            loadProducts();
+        } else { alert("登入失敗"); }
     }
 
     loadProducts();
