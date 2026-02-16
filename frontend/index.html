@@ -8,10 +8,12 @@
         :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b91d1d; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
-        /* 導覽列 */
+        /* 導覽列 - 修復恐龍 Logo */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
+        .logo-area { display: flex; align-items: center; margin-left: 15px; cursor: pointer; }
+        .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
         
-        /* 選單 */
+        /* 選單與遮罩 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
@@ -30,14 +32,12 @@
         .card:hover { transform: translateY(-5px); }
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         
-        /* 數量控制器樣式 */
         .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 50%; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
         .qty-val { margin: 0 8px; font-weight: bold; font-size: 14px; }
 
         .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         
-        /* 會員資料列 */
         .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 15px; text-align: right; }
         .profile-row span { text-align: left; min-width: 50px; font-weight: bold; color: #888; }
         .profile-row b { color: #333; max-width: 200px; word-wrap: break-word; }
@@ -50,7 +50,10 @@
 
 <header>
     <button onclick="toggleM()" style="font-size:24px; border:none; background:none; cursor:pointer; color:var(--p);">☰</button>
-    <div style="margin-left:15px; font-weight:900; color:var(--p); font-size:22px;">萌商城</div>
+    <div class="logo-area" onclick="showPage('products')">
+        <img src="https://img.icons8.com/color/96/dinosaur.png" width="40" height="40">
+        <span class="logo-text">萌商城</span>
+    </div>
 </header>
 
 <div id="mask" class="mask" onclick="toggleM()"></div>
@@ -168,7 +171,7 @@
         } catch(e) { console.error("Error loading products"); }
     }
 
-    // 詳情與加入購物車 (解決加入購物車失效)
+    // 詳情與購物
     function showDetail(id) {
         const p = products.find(x=>x.id===id);
         document.getElementById('d-content').innerHTML = `
@@ -179,24 +182,19 @@
         showPage('detail');
     }
     
-    // 加入購物車邏輯 (升級：檢查重複並堆疊數量)
+    // 購物車邏輯 (含數量編輯)
     function add(id) { 
         if(!user) return alert("請先登入");
         const p = products.find(x=>x.id===id);
         const exist = cart.find(x => x.id === id);
-        if(exist) {
-            exist.qty++;
-        } else {
-            cart.push({...p, qty: 1}); // 初始數量為 1
-        }
+        if(exist) exist.qty++; 
+        else cart.push({...p, qty: 1});
         updateCartCount();
         alert("已加入購物車"); 
     }
-
-    // 購物車數量編輯與計算
     function updateQty(idx, change) {
         cart[idx].qty += change;
-        if(cart[idx].qty <= 0) cart.splice(idx, 1); // 數量為 0 則移除
+        if(cart[idx].qty <= 0) cart.splice(idx, 1);
         renderCart();
         updateCartCount();
     }
@@ -204,7 +202,7 @@
         document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty, 0);
     }
     function renderCart() {
-        const t = cart.reduce((s,i)=>s + (i.price * i.qty), 0); // 總價 = 單價 * 數量
+        const t = cart.reduce((s,i)=>s + (i.price * i.qty), 0);
         document.getElementById('total').innerText = t;
         document.getElementById('reward').innerText = Math.floor(t*0.01);
         
@@ -236,19 +234,27 @@
     async function checkout() {
         if(cart.length===0) return;
         const t = document.getElementById('total').innerText;
-        // 紀錄商品名稱與數量
         const prodSummary = cart.map(i => `${i.name}x${i.qty}`).join(", ");
-        
         const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: prodSummary, total: t, image_url: cart[0].image_url}) });
         if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳成功！獲得 " + d.reward + " 積分"); cart=[]; updateCartCount(); showPage('products'); }
     }
+    async function playScratch() {
+        if(points<10) return alert("積分不足 (需要 10 點)");
+        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
+        const d = await res.json();
+        document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
+    }
+    // 簽到修復：處理後端錯誤訊息
     async function doSignin() {
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); }
-        else { const d = await res.json(); alert(d.error || "簽到失敗"); }
+        if(res.ok) { 
+            points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); 
+        } else {
+            const d = await res.json();
+            alert(d.error || "簽到失敗"); // 顯示「今天已簽到」
+        }
     }
     
-    // 全功能資料更新
     async function updateProfile() {
         const name = document.getElementById('n-name').value;
         const bio = document.getElementById('n-bio').value;
@@ -258,9 +264,7 @@
         const payload = { email: user.email, username: name, bio: bio };
         if(pass) payload.password = pass;
 
-        const res = await fetch(API + "/update-profile", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) 
-        });
-
+        const res = await fetch(API + "/update-profile", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
         if(res.ok) { 
             user.username = name;
             user.bio = bio;
@@ -269,13 +273,6 @@
             alert("資料修改成功！"); 
             document.getElementById('edit-box').classList.add('hidden');
         }
-    }
-    
-    // 刮刮樂 & 紀錄 & 狀態
-    async function playScratch() {
-        if(points<10) return alert("積分不足 (需要 10 點)");
-        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        const d = await res.json(); document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
     }
     async function loadHistory() {
         const res = await fetch(API + `/orders?email=${user.email}`);
@@ -286,6 +283,8 @@
                 <div><b style="color:var(--p);">$${o.total_price}</b><br><small style="color:#888;">${o.order_date.split('T')[0]}</small><br><span style="font-size:12px; color:#aaa;">${o.product_name}</span></div>
             </div>`).join('') || "<p>尚無購買紀錄</p>";
     }
+
+    // 狀態管理
     function refreshUser() {
         document.getElementById('u-email').innerText = user.email;
         document.getElementById('u-name').innerText = user.username;
