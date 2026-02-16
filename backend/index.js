@@ -15,28 +15,24 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 【關鍵修復】結帳 API：確保欄位與 Neon 資料庫 100% 匹配
+// 【重要修復】結帳 API 欄位對齊
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total } = req.body;
+  if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
   
-  if (!email || !products) {
-    return res.status(400).json({ error: "資訊不完整" });
-  }
-
   try {
-    // 這裡的 total 確保轉換為整數
+    // 確保 total 為整數存入
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
       [email, products, parseInt(total)]
     );
     res.json({ message: "結帳成功" });
   } catch (err) {
-    console.error("資料庫寫入失敗原因:", err.message);
-    res.status(500).json({ error: "伺服器錯誤: " + err.message });
+    console.error("結帳存檔失敗:", err.message);
+    res.status(500).json({ error: "伺服器存檔錯誤: " + err.message });
   }
 });
 
-// 取得購買紀錄 API
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
@@ -45,7 +41,6 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 登入、資料更新與產品 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
