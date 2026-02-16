@@ -8,16 +8,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 資料庫連線配置
+// Neon 資料庫配置
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// 靜態檔案服務
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 取得商品列表
+// [API] 取得商品列表
 app.get('/api/products', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
@@ -27,7 +26,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// 2. 登入 API
+// [API] 登入並取得用戶積分
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -41,108 +40,69 @@ app.post('/api/login', async (req, res) => {
           bio: user.rows[0].bio,
           points: user.rows[0].points 
         });
-      } else {
-        res.status(401).json({ error: "密碼錯誤" });
-      }
-    } else {
-      res.status(404).json({ error: "用戶不存在" });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+      } else res.status(401).json({ error: "密碼錯誤" });
+    } else res.status(404).json({ error: "用戶不存在" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 3. 結帳與積分反饋 API (0.1% 算法)
+// [API] 結帳 + 1% 積分回饋算法
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
-  const rewardPoints = Math.floor(total * 0.001); // 0.1% 點數回饋邏輯
+  const reward = Math.floor(parseInt(total) * 0.01); // 1% 積分算法
   
   try {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      // 存入訂單紀錄
+      // 寫入訂單
       await client.query(
         'INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1, $2, $3, $4)',
         [email, products, parseInt(total), image_url]
       );
-      // 更新用戶積分
+      // 更新積分
       await client.query(
         'UPDATE users SET points = points + $1 WHERE email = $2',
-        [rewardPoints, email]
+        [reward, email]
       );
       await client.query('COMMIT');
-      res.json({ message: "OK", reward: rewardPoints });
+      res.json({ message: "OK", reward });
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
     } finally {
       client.release();
     }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 4. 取得購買紀錄
+// [API] 取得購買紀錄
 app.get('/api/orders', async (req, res) => {
-  const { email } = req.query;
   try {
     const result = await pool.query(
       'SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', 
-      [email]
+      [req.query.email]
     );
     res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 5. 更新個人資料 (暱稱、介紹)
+// [API] 更新個人資料
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio } = req.body;
   try {
     if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
     if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
     res.json({ message: "OK" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 6. 安全更改密碼 API
-app.post('/api/update-password', async (req, res) => {
-  const { email, oldPassword, newPassword } = req.body;
-  try {
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length > 0) {
-      // 比對舊密碼是否正確
-      const valid = await bcrypt.compare(oldPassword, user.rows[0].password);
-      if (valid) {
-        const hashedPswd = await bcrypt.hash(newPassword, 10); // 加密新密碼
-        await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPswd, email]);
-        res.json({ message: "OK" });
-      } else {
-        res.status(401).json({ error: "舊密碼驗證失敗" });
-      }
-    } else {
-      res.status(404).json({ error: "帳號異常" });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 7. 簽到領取積分 API
+// [API] 簽到領積分
 app.post('/api/daily-signin', async (req, res) => {
-  const { email } = req.body;
   try {
-    await pool.query('UPDATE users SET points = points + 10 WHERE email = $1', [email]);
-    res.json({ message: "OK", pointsAdded: 10 });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    await pool.query('UPDATE users SET points = points + 10 WHERE email = $1', [req.body.email]);
+    res.json({ message: "OK" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`萌伺服器已在端口 ${PORT} 啟動`));
+app.listen(PORT, () => console.log(`萌伺服器啟動於 ${PORT}`));
