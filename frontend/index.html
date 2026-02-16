@@ -7,8 +7,9 @@
     <style>
         :root { --primary: #7db9a1; --accent: #f4b183; --bg: #fdfaf7; --text: #4a4a4a; --danger: #e67e73; --shadow: 0 12px 30px rgba(0,0,0,0.05); }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.02); height: 60px; box-sizing: border-box; }
         
+        /* 標題與登入狀態 UI 固定 */
+        header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.02); height: 60px; box-sizing: border-box; }
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); cursor: pointer; }
         .nav-right { display: flex; align-items: center; gap: 8px; }
         .btn-cart-header { background: var(--accent); color: white; border: none; padding: 6px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; font-size: 13px; }
@@ -16,19 +17,22 @@
 
         .container { max-width: 850px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none !important; }
-        .card { background: white; border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(0,0,0,0.01); }
+        .card { background: white; border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(0,0,0,0.01); margin-bottom: 20px; }
         
-        /* 購物車樣式：含數量調整按鈕 */
+        /* 詳情頁垂直佈局 */
+        .detail-content { padding: 35px; text-align: center; }
+        .detail-img { width: 100%; max-width: 450px; border-radius: 18px; margin-bottom: 25px; }
+        
+        /* 購物車數量調整 UI */
         .cart-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
-        .cart-img { width: 65px; height: 65px; border-radius: 12px; object-fit: cover; }
+        .cart-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
         .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
         .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 14px; cursor: pointer; width: 100%; font-weight: 600; font-size: 16px; }
         .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 12px; box-sizing: border-box; }
         
-        /* 會員中心格式 */
+        /* 會員中心格式還原 */
         .modal-card { background: white; padding: 40px; border-radius: 30px; width: 340px; max-height: 85vh; overflow-y: auto; text-align: left; }
-        .order-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -44,11 +48,11 @@
 
 <div class="container">
     <div id="page-products">
-        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;"></div>
+        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;">載入中...</div>
     </div>
     
     <div id="page-detail" class="hidden">
-        <div id="detail-content" class="card" style="padding:35px; text-align:center;"></div>
+        <div id="detail-content" class="card detail-content"></div>
         <p style="text-align:center; margin-top:20px; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
     </div>
 
@@ -59,7 +63,8 @@
     </div>
 
     <div id="page-login" class="hidden">
-        <div class="card" style="max-width:350px; margin:0 auto; padding:40px;">
+        <div class="card" style="max-width:380px; margin:0 auto; padding:40px; text-align:center;">
+            <h2>歡迎回來</h2>
             <input type="email" id="login-email" class="input-field" placeholder="Email">
             <input type="password" id="login-password" class="input-field" placeholder="密碼">
             <button class="btn-submit" onclick="apiLogin()">進入商城</button>
@@ -77,7 +82,7 @@
             <h4>🛍️ 網頁購買紀錄</h4>
             <div id="order-history"></div>
         </div>
-        <button onclick="logout()" style="color:var(--danger); background:none; border:none; width:100%; margin-top:20px; cursor:pointer;">登出</button>
+        <button onclick="logout()" style="color:var(--danger); background:none; border:none; width:100%; margin-top:20px; cursor:pointer; font-weight:600;">登出帳號</button>
         <button onclick="toggleUserModal()" style="color:#bbb; background:none; border:none; width:100%; margin-top:10px; cursor:pointer;">關閉</button>
     </div>
 </div>
@@ -98,17 +103,18 @@
         document.getElementById('product-list').innerHTML = allProducts.map(p => `
             <div class="card" onclick="showDetail(${p.id})">
                 <img src="${p.image_url}" style="width:100%; height:220px; object-fit:cover;">
-                <div style="padding:15px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--danger)">NT$ ${p.price}</p></div>
+                <div style="padding:18px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--danger); font-weight:700;">NT$ ${p.price}</p></div>
             </div>`).join('');
     }
 
     function showDetail(id) {
         const p = allProducts.find(i => i.id === id);
         document.getElementById('detail-content').innerHTML = `
-            <img src="${p.image_url}" style="width:100%; max-width:400px; border-radius:15px;">
-            <h2>${p.name}</h2><p style="color:var(--danger); font-size:24px;">NT$ ${p.price}</p>
-            <div style="background:#f8f9f8; padding:15px; border-radius:12px; text-align:left; margin:20px 0;">${p.description}</div>
-            <button class="btn-submit" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">🛒 加入購物車</button>`;
+            <img src="${p.image_url}" class="detail-img">
+            <div style="font-size:26px; font-weight:700;">${p.name}</div>
+            <div style="color:var(--danger); font-size:22px; margin:10px 0;">NT$ ${p.price}</div>
+            <div style="background:#f8f9f8; padding:15px; border-radius:12px; text-align:left; color:#666;">${p.description}</div>
+            <button class="btn-submit" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">🛒 加入購物車</button>`;
         showPage('detail');
     }
 
@@ -117,7 +123,7 @@
         const exist = cart.find(item => item.name === n);
         if (exist) { exist.qty++; } else { cart.push({ name: n, price: p, img: i, qty: 1 }); }
         updateCartCount();
-        alert("已加入購物車");
+        alert("已成功加入購物車！");
     }
 
     function updateCartCount() {
@@ -126,20 +132,20 @@
 
     function renderCart() {
         const container = document.getElementById('cart-container');
-        if (cart.length === 0) { container.innerHTML = "購物車目前是空的"; return; }
+        if (cart.length === 0) { container.innerHTML = "<p style='text-align:center;'>購物車是空的</p>"; return; }
         let total = 0;
         container.innerHTML = cart.map((item, index) => {
             const sub = item.price * item.qty; total += sub;
             return `
             <div class="cart-item">
                 <img src="${item.img}" class="cart-img">
-                <div class="cart-info"><b>${item.name}</b><br><small>NT$ ${item.price}</small></div>
+                <div style="flex:1;"><b>${item.name}</b><br><small>NT$ ${item.price}</small></div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
                     <span>${item.qty}</span>
                     <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
                 </div>
-                <div style="width:80px; text-align:right; font-weight:bold;">$${sub}</div>
+                <div style="width:70px; text-align:right; font-weight:bold;">$${sub}</div>
             </div>`;
         }).join('') + `<div style="text-align:right; font-size:18px; font-weight:800; margin-top:20px; color:var(--danger);">總計：NT$ ${total}</div>`;
     }
@@ -155,20 +161,17 @@
         if (cart.length === 0) return;
         const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         const productsStr = cart.map(i => `${i.name}(x${i.qty})`).join(', ');
-        const res = await fetch(`${API_URL}/checkout`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: currentUser.email, products: productsStr, total: total })
-        });
-        if (res.ok) { alert("購買成功！訂單已存入。"); cart = []; updateCartCount(); showPage('products'); }
+        const res = await fetch(`${API_URL}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, products: productsStr, total: total }) });
+        if (res.ok) { alert("結帳成功！訂單已存入紀錄。"); cart = []; updateCartCount(); showPage('products'); }
     }
 
     async function loadOrders() {
         const res = await fetch(`${API_URL}/orders?email=${currentUser.email}`);
         const orders = await res.json();
         document.getElementById('order-history').innerHTML = orders.length ? orders.map(o => `
-            <div class="order-item"><span>${o.order_date.split('T')[0]} - ${o.product_name}</span><b>NT$ ${o.total_price}</b></div>
-        `).join('') : "尚無網頁購買紀錄";
+            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f9f9f9; font-size:13px;">
+                <span>${o.order_date.split('T')[0]} - ${o.product_name}</span><b>NT$ ${o.total_price}</b>
+            </div>`).join('') : "尚無網頁購買紀錄";
     }
 
     function toggleUserModal() {
