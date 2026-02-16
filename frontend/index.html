@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>萌商城</title>
-    <link rel="icon" href="https://img.icons8.com/color/96/dinosaur.png">
+    <title>萌商城 - 蛇年終極穩定版</title>
     <style>
-        :root { --primary: #7db9a1; --primary-bg: #f0f7f4; --bg: #fdfaf7; --text: #4a4a4a; --shadow: 0 12px 40px rgba(0,0,0,0.08); --accent: #f4b183; --danger: #e63946; }
+        :root { --primary: #7db9a1; --primary-bg: #f0f7f4; --bg: #fdfaf7; --text: #4a4a4a; --shadow: 0 12px 40px rgba(0,0,0,0.08); --accent: #f4b183; --danger: #e63946; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        
+        /* 導覽列與選單視覺 */
         header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 0 5%; display: flex; align-items: center; height: 70px; box-shadow: 0 2px 15px rgba(0,0,0,0.02); position: sticky; top: 0; z-index: 1000; }
-        .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; color: var(--primary); cursor: pointer; transition: 0.3s; }
-        .logo:hover { transform: scale(1.05); }
-
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; color: var(--primary); cursor: pointer; }
+        
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.4s; padding: 40px 25px; box-sizing: border-box; }
         .drawer.active { transform: translateX(280px); }
-        .drawer-item { padding: 15px; border-radius: 18px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; transition: 0.3s; }
+        .drawer-item { padding: 15px; border-radius: 18px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; }
         .drawer-item:hover { background: var(--primary-bg); transform: translateX(12px); color: var(--primary); }
 
         #history-panel { position: fixed; right: -350px; top: 0; width: 350px; height: 100%; background: white; z-index: 2100; transition: 0.4s; padding: 30px; box-sizing: border-box; box-shadow: -10px 0 40px rgba(0,0,0,0.1); overflow-y: auto; }
@@ -24,10 +24,9 @@
         .modal-overlay.active { display: flex; }
         .modal-card { background: white; padding: 40px; border-radius: 35px; width: 360px; text-align: center; position: relative; }
         
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; padding: 20px; }
-        .card { background: white; border-radius: 30px; box-shadow: var(--shadow); padding: 25px; transition: 0.4s; cursor: pointer; }
+        .card { background: white; border-radius: 30px; box-shadow: var(--shadow); transition: 0.4s; cursor: pointer; overflow: hidden; }
         .card:hover { transform: translateY(-10px); }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 20px; cursor: pointer; width: 100%; font-weight: 700; transition: 0.3s; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 20px; cursor: pointer; width: 100%; font-weight: 700; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -35,7 +34,7 @@
 
 <header>
     <button onclick="toggleMenu()" style="font-size:26px; border:none; background:none; color:var(--primary); cursor:pointer;">☰</button>
-    <div class="logo" onclick="showPage('products')"><span>萌商城</span></div>
+    <div class="logo" onclick="showPage('products')"><img src="https://img.icons8.com/color/96/dinosaur.png" width="35"><span>萌商城</span></div>
 </header>
 
 <div id="menu" class="drawer">
@@ -52,25 +51,24 @@
     <div id="history-list"></div>
 </div>
 
-<div class="container">
-    <div id="page-products" class="grid"></div>
-    <div id="page-detail" class="hidden"><div id="detail-content" class="card"></div><p onclick="showPage('products')" style="text-align:center; cursor:pointer; color:#bbb;">← 返回</p></div>
-    <div id="page-cart" class="hidden">
-        <h2>🛒 我的購物車</h2><div id="cart-container"></div>
-        <div class="card" style="text-align:right; margin-top:20px;">
-            <h3>總額: $<span id="cart-total">0</span></h3>
-            <p style="color:var(--primary);">回饋積分 (1%): <span id="reward-p">0</span></p>
-            <button class="btn-main" onclick="checkout()">確認結帳</button>
-        </div>
-    </div>
+<div class="container" id="page-products" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:30px; padding:20px;"></div>
+
+<div id="page-detail" class="hidden" style="padding:20px; text-align:center;">
+    <div id="detail-content" class="card" style="max-width:500px; margin:auto; padding:30px;"></div>
+    <p onclick="showPage('products')" style="color:#bbb; cursor:pointer; margin-top:20px;">← 返回商品列表</p>
 </div>
 
 <div id="user-modal" class="modal-overlay"><div class="modal-card">
     <button style="position:absolute; right:20px; top:20px;" onclick="closeModals()">✕</button>
     <h3>會員中心</h3>
     <div style="text-align:left; background:#fafafa; padding:20px; border-radius:20px; margin-bottom:15px;">
-        <p>帳號：<b id="m-email"></b></p><p>暱稱：<b id="m-name"></b></p>
-        <p>密碼：<b>********</b></p><p>積分：<b id="m-points" style="color:var(--accent);">0</b></p>
+        <p>帳號：<b id="m-email"></b></p>
+        <p>暱稱：<b id="m-name"></b></p>
+        <p>密碼：<b>********</b></p> <p>積分：<b id="m-points" style="color:var(--accent);">0</b></p>
+    </div>
+    <button class="btn-main" onclick="document.getElementById('edit-box').classList.toggle('hidden')">編輯資料</button>
+    <div id="edit-box" class="hidden" style="margin-top:15px;">
+        <input id="n-name" placeholder="新暱稱" style="width:100%; padding:10px; margin-bottom:10px; border-radius:10px; border:1px solid #eee;"><button onclick="saveF('username','n-name')" class="btn-main">修改</button>
     </div>
 </div></div>
 
@@ -78,22 +76,34 @@
     const API = "/api";
     let allProducts = [], cart = [], currentUser = null, userPoints = 0;
 
+    // 解決 NaN 與 頁面邏輯
     function toggleMenu() { document.getElementById('menu').classList.toggle('active'); }
     function toggleHistory() { document.getElementById('history-panel').classList.toggle('active'); if(document.getElementById('history-panel').classList.contains('active')) loadOrders(); }
     function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
-    function openModal(id) { toggleMenu(); document.getElementById(id).classList.add('active'); if(id==='user-modal') refreshUser(); }
-    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); }
-
-    async function loadProducts() {
-        const res = await fetch(API + "/products");
-        allProducts = await res.json();
-        document.getElementById('page-products').innerHTML = allProducts.map(p => `
-            <div class="card" onclick="showDetail(${p.id})">
-                <img src="${p.image_url}" style="width:100%; border-radius:20px;">
-                <h3>${p.name}</h3><b style="color:var(--primary);">$${p.price}</b>
-            </div>`).join('');
+    
+    function openModal(id) { 
+        if(!currentUser) return alert("請先登入");
+        toggleMenu();
+        document.getElementById(id).classList.add('active'); 
+        if(id==='user-modal') refreshUser(); 
     }
 
+    function showPage(p) { 
+        document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); 
+        document.getElementById('page-'+p).classList.remove('hidden'); 
+        if(p==='products') loadProducts();
+    }
+
+    // 解決加入購物車失效問題
+    function addToCart(id) {
+        if(!currentUser) return alert("請先登入");
+        const p = allProducts.find(x => x.id === id);
+        cart.push(p);
+        document.getElementById('cart-count').innerText = cart.length;
+        alert("已加入購物車！");
+    }
+
+    // 解決詳情頁失效問題
     function showDetail(id) {
         const p = allProducts.find(x => x.id === id);
         document.getElementById('detail-content').innerHTML = `
@@ -104,24 +114,33 @@
         showPage('detail');
     }
 
+    // 解決截圖中 NaN 積分顯示問題
     function refreshUser() {
         if(!currentUser) return;
         document.getElementById('m-email').innerText = currentUser.email;
         document.getElementById('m-name').innerText = currentUser.username;
-        const pts = Number(userPoints || currentUser.points || 0); // 解決截圖中的 NaN 問題
+        const pts = Number(userPoints || currentUser.points || 0);
         document.getElementById('m-points').innerText = isNaN(pts) ? 0 : pts;
     }
 
-    async function init() {
+    async function loadProducts() {
+        const res = await fetch(API + "/products");
+        allProducts = await res.json();
+        document.getElementById('page-products').innerHTML = allProducts.map(p => `
+            <div class="card" onclick="showDetail(${p.id})">
+                <img src="${p.image_url}" style="width:100%; height:220px; object-fit:cover;">
+                <div style="padding:20px;"><h3>${p.name}</h3><b style="color:var(--primary);">$${p.price}</b></div>
+            </div>`).join('');
+    }
+
+    window.onload = () => {
         const saved = localStorage.getItem('萌商城_user');
         if(saved) {
             currentUser = JSON.parse(saved);
             userPoints = Number(currentUser.points || 0);
-            refreshUser();
         }
         loadProducts();
-    }
-    init();
+    };
 </script>
 </body>
 </html>
