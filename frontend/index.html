@@ -17,17 +17,17 @@
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* 右側購買紀錄 - 徹底隱藏修正 */
+        /* 右側購買紀錄 - 徹底隱藏 */
         #history-panel { 
             position: fixed; 
-            right: -100%; /* 改用 -100% 確保完全移出螢幕，不會露出邊角 */
+            right: -100%; /* 確保完全隱藏 */
             top: 0; 
-            width: 85%; /* 手機版寬度調整 */
+            width: 85%; 
             max-width: 350px; 
             height: 100%; 
             background: white; 
             z-index: 2100; 
-            transition: right 0.3s ease; /* 使用 right 屬性進行滑動 */
+            transition: right 0.3s ease; 
             padding: 25px; 
             box-sizing: border-box; 
             box-shadow: -5px 0 20px rgba(0,0,0,0.1); 
@@ -85,8 +85,9 @@
     </div>
     
     <div id="page-cart" class="hidden" style="padding:20px;">
-        <h2>🛒 購物車</h2><div id="c-items"></div>
-        <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px;">
+        <h2>🛒 購物車</h2>
+        <div id="c-items"></div>
+        <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
             <h3>總計: $<span id="total">0</span></h3>
             <p style="color:var(--p);">1% 回饋：<span id="reward">0</span> 積分</p>
             <button class="btn" onclick="checkout()">確認結帳</button>
@@ -188,11 +189,22 @@
         document.getElementById('count').innerText = cart.length; 
         alert("已加入購物車"); 
     }
+    
+    // 購物車格式修復：恢復圖文顯示
     function renderCart() {
         const t = cart.reduce((s,i)=>s+i.price,0);
         document.getElementById('total').innerText = t;
         document.getElementById('reward').innerText = Math.floor(t*0.01);
-        document.getElementById('c-items').innerHTML = cart.map(i=>`<div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between;"><span>${i.name}</span><b>$${i.price}</b></div>`).join('') || "<p style='text-align:center; color:#999;'>購物車是空的</p>";
+        
+        // 這裡恢復了圖片 + 名稱 + 價格的漂亮排版
+        document.getElementById('c-items').innerHTML = cart.map(i => `
+            <div style="display:flex; align-items:center; gap:15px; background:white; padding:10px; border-radius:15px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.03);">
+                <img src="${i.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
+                <div style="flex:1;">
+                    <div style="font-weight:bold; color:#333;">${i.name}</div>
+                    <div style="color:var(--p); font-size:14px;">$${i.price}</div>
+                </div>
+            </div>`).join('') || "<p style='text-align:center; color:#999; padding:20px;'>購物車空空的喔～</p>";
     }
 
     // API 交互
