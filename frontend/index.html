@@ -5,35 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>萌商城</title>
     <style>
-        :root { --primary: #67b18a; --warning: #f39c12; --bg: #fdfdfd; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; }
-        header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top:0; z-index:100; }
-        .logo { font-size: 24px; font-weight: bold; cursor: pointer; }
-        .user-name-btn { color: var(--primary); font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
-        .user-name-btn:hover { background: #f0f0f0; text-decoration: underline; }
+        /* 1. 全域變數與重設 */
+        :root { 
+            --primary: #7db9a1;      /* 柔和豆沙綠 */
+            --primary-dark: #669a84;
+            --accent: #f4b183;       /* 溫暖橘 */
+            --bg: #fdfaf7;           /* 極淺米色背景，比純白更舒適 */
+            --card-bg: #ffffff;
+            --text-main: #4a4a4a;
+            --text-sub: #8c8c8c;
+            --danger: #e67e73;       /* 柔和紅 */
+            --shadow: 0 8px 24px rgba(149, 157, 165, 0.1);
+        }
 
-        /* 會員中心彈窗 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-card { background: white; padding: 25px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .info-label { text-align: left; font-size: 13px; color: #888; margin-bottom: 5px; }
-        .bio-box { color: #666; font-size: 14px; margin: 10px 0; background: #f9f9f9; padding: 12px; border-radius: 10px; text-align: left; }
-        
-        /* 基礎容器 */
-        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        body { 
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            margin: 0; 
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        /* 2. 導覽列 */
+        header { 
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            padding: 15px 8%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+
+        .logo { 
+            font-size: 26px; 
+            font-weight: 700; 
+            color: var(--primary);
+            letter-spacing: 1px;
+            cursor: pointer; 
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 20px; }
+
+        .btn-cart-header { 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 10px 22px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(244, 177, 131, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .btn-cart-header:hover { transform: scale(1.05); }
+
+        .user-name-btn { 
+            color: var(--text-main); 
+            font-weight: 500; 
+            cursor: pointer; 
+            padding: 8px 15px; 
+            border-radius: 12px;
+            background: #f0f2f0;
+            transition: 0.3s;
+        }
+
+        .user-name-btn:hover { background: var(--primary); color: white; }
+
+        /* 3. 容器與佈局 */
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
         .hidden { display: none !important; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; cursor: pointer; }
-        .product-card img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid #eee; }
 
-        /* 按鈕與輸入 */
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
-        .btn-outline { background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin: 5px; }
-        .input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        .btn-logout { background: #fee; color: #e74c3c; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer; font-weight: bold; }
+        h2 { font-weight: 600; color: var(--text-main); margin-bottom: 30px; text-align: center; }
 
-        /* 購物車 */
-        .cart-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; gap: 15px; }
-        .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        /* 4. 商品卡片 */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+            gap: 30px; 
+        }
+
+        .product-card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .product-card:hover { 
+            transform: translateY(-10px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+
+        .product-card img { width: 100%; height: 240px; object-fit: cover; }
+        
+        .product-card h3 { font-size: 18px; margin: 15px 0 5px; padding: 0 15px; }
+        .product-card p { color: var(--danger); font-weight: 700; font-size: 20px; margin-bottom: 20px; padding: 0 15px; }
+
+        /* 5. 詳情頁與購物車 */
+        .page-card { 
+            background: var(--card-bg); 
+            padding: 40px; 
+            border-radius: 24px; 
+            box-shadow: var(--shadow); 
+        }
+
+        .detail-img { width: 100%; border-radius: 18px; margin-bottom: 25px; }
+
+        .cart-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 20px 0; 
+            border-bottom: 1px solid #f1f1f1; 
+            gap: 20px; 
+        }
+
+        .item-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
+
+        .quantity-control { 
+            display: flex; 
+            align-items: center; 
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .quantity-control button { 
+            width: 30px; height: 30px; border: none; background: white; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; 
+        }
+
+        /* 6. 表單與按鈕 */
+        .input-field { 
+            width: 100%; padding: 14px; margin-bottom: 15px; 
+            border: 1px solid #e1e1e1; border-radius: 12px; 
+            font-size: 16px; transition: 0.3s;
+        }
+
+        .input-field:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(125, 185, 161, 0.1); }
+
+        .btn-submit { 
+            background: var(--primary); color: white; border: none; 
+            padding: 14px; border-radius: 12px; cursor: pointer; 
+            width: 100%; font-size: 16px; font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover { background: var(--primary-dark); }
+
+        /* 7. 彈窗 (Modal) */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000; 
+        }
+
+        .modal-card { 
+            background: white; padding: 35px; border-radius: 28px; 
+            width: 360px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+        }
     </style>
 </head>
 <body>
@@ -41,64 +179,62 @@
 <header>
     <div class="logo" onclick="showPage('products')">萌商城</div>
     <div class="nav-right">
-        <button onclick="showPage('cart')" style="background:var(--warning); color:white; border:none; padding:8px 18px; border-radius:25px; cursor:pointer; font-weight:bold;">🛒 購物車 (<span id="cart-count">0</span>)</button>
+        <button class="btn-cart-header" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
         <span id="user-display" class="user-name-btn hidden" onclick="toggleUserModal()"></span>
         <button id="login-nav-btn" class="user-name-btn" onclick="showPage('login')">登入</button>
     </div>
 </header>
 
-<div id="user-modal" class="modal-overlay hidden">
-    <div class="modal-card">
-        <h2 id="modal-title">會員中心</h2>
-        <div class="info-label">登入帳號：<span id="modal-email" style="color:#333; font-weight:bold;"></span></div>
-        
-        <div id="view-mode">
-            <div class="bio-box" id="display-bio"></div>
-            <button class="btn-outline" onclick="setEditMode('bio')">✎ 編輯介紹</button>
-            <button class="btn-outline" onclick="setEditMode('pwd')">🔑 修改密碼</button>
-        </div>
-
-        <div id="bio-mode" class="hidden">
-            <textarea id="edit-bio-input" class="input-field" style="height:80px;"></textarea>
-            <button class="btn-submit" onclick="saveBio()">儲存介紹</button>
-            <p onclick="setEditMode('none')" style="cursor:pointer; color:#999; font-size:12px; margin-top:10px;">取消</p>
-        </div>
-
-        <div id="pwd-mode" class="hidden">
-            <input type="password" id="new-password" class="input-field" placeholder="請輸入新密碼">
-            <button class="btn-submit" style="background:#f39c12;" onclick="savePassword()">確認更新密碼</button>
-            <p onclick="setEditMode('none')" style="cursor:pointer; color:#999; font-size:12px; margin-top:10px;">取消</p>
-        </div>
-
-        <button class="btn-logout" onclick="location.reload()">登出帳號</button>
-        <button onclick="toggleUserModal()" style="width:100%; margin-top:10px; border:none; background:none; color:#bbb; cursor:pointer;">關閉視窗</button>
-    </div>
-</div>
-
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center; margin-bottom:30px;">熱門商品</h2>
+        <h2>精選萌萌商品</h2>
         <div id="product-list" class="product-grid">載入中...</div>
     </div>
 
     <div id="page-detail" class="hidden">
-        <div id="detail-content" style="background:white; padding:25px; border-radius:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
-        <p style="text-align:center; margin-top:20px; cursor:pointer; color:#888;" onclick="showPage('products')">← 返回商品列表</p>
+        <div id="detail-content" class="page-card"></div>
+        <p style="text-align:center; margin-top:25px; cursor:pointer; color:var(--text-sub);" onclick="showPage('products')">← 返回列表</p>
     </div>
 
     <div id="page-cart" class="hidden">
-        <h2 style="text-align:center;">🛒 購物車清單</h2>
-        <div id="cart-container" style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);"></div>
-        <button class="btn-submit" style="margin-top:20px;" onclick="checkout()">立即結帳</button>
+        <h2>您的購物清單</h2>
+        <div id="cart-container" class="page-card"></div>
+        <button class="btn-submit" style="margin-top:25px;" onclick="checkout()">立即結帳</button>
     </div>
 
     <div id="page-login" class="hidden">
-        <div style="background:white; padding:40px; border-radius:15px; max-width:350px; margin:0 auto; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-            <h2 style="margin-top:0;">登入萌商城</h2>
+        <div class="page-card" style="max-width:380px; margin:0 auto; text-align:center;">
+            <h2 style="margin-top:0;">歡迎回來</h2>
             <input type="email" id="login-email" class="input-field" placeholder="Email">
             <input type="password" id="login-password" class="input-field" placeholder="密碼">
-            <button class="btn-submit" onclick="apiLogin()">登入</button>
+            <button class="btn-submit" onclick="apiLogin()">登入商城</button>
         </div>
+    </div>
+</div>
+
+<div id="user-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h2 id="modal-title" style="margin-top:0;">會員中心</h2>
+        <p style="font-size:14px; color:var(--text-sub); margin-bottom:20px;">Email: <span id="modal-email" style="color:var(--text-main); font-weight:bold;"></span></p>
+        
+        <div id="view-mode">
+            <div id="display-bio" style="background:#f8f9f8; padding:15px; border-radius:15px; font-size:14px; text-align:left; margin-bottom:20px;"></div>
+            <button class="btn-submit" style="background:#f0f2f0; color:var(--text-main); margin-bottom:10px;" onclick="setEditMode('bio')">編輯介紹</button>
+            <button class="btn-submit" style="background:#f0f2f0; color:var(--text-main);" onclick="setEditMode('pwd')">修改密碼</button>
+        </div>
+
+        <div id="bio-mode" class="hidden">
+            <textarea id="edit-bio-input" class="input-field" style="height:100px;"></textarea>
+            <button class="btn-submit" onclick="saveBio()">儲存</button>
+        </div>
+
+        <div id="pwd-mode" class="hidden">
+            <input type="password" id="new-password" class="input-field" placeholder="新密碼">
+            <button class="btn-submit" onclick="savePassword()">更新密碼</button>
+        </div>
+
+        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); font-weight:600; margin-top:25px; cursor:pointer;">登出帳號</button>
+        <button onclick="toggleUserModal()" style="display:block; width:100%; background:none; border:none; color:#bbb; margin-top:15px; cursor:pointer;">關閉</button>
     </div>
 </div>
 
@@ -119,7 +255,7 @@
             <div class="product-card" onclick="showDetail(${p.id})">
                 <img src="${p.image_url}">
                 <h3>${p.name}</h3>
-                <p style="color:#e74c3c; font-weight:bold;">NT$ ${p.price}</p>
+                <p>NT$ ${p.price}</p>
             </div>`).join('');
     }
 
@@ -127,14 +263,15 @@
         const p = allProducts.find(i => i.id === id);
         const isLoggedIn = currentUser !== null;
         document.getElementById('detail-content').innerHTML = `
-            <img src="${p.image_url}" style="width:100%; max-height:400px; object-fit:contain; border-radius:10px;">
-            <h1>${p.name}</h1>
-            <p style="color:#e74c3c; font-size:24px; font-weight:bold;">NT$ ${p.price}</p>
-            <div style="border-top:1px solid #eee; padding-top:15px; color:#555; line-height:1.6;">
-                <strong>商品介紹：</strong><p>${p.description || "資訊載入中..."}</p>
+            <img src="${p.image_url}" class="detail-img">
+            <h1 style="margin:0 0 10px;">${p.name}</h1>
+            <p style="color:var(--danger); font-size:28px; font-weight:700; margin-bottom:20px;">NT$ ${p.price}</p>
+            <div style="border-top:1px solid #eee; padding-top:20px; color:var(--text-main);">
+                <p><strong>商品介紹：</strong></p>
+                <p>${p.description || "資訊載入中..."}</p>
             </div>
-            <button class="btn-submit" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
-                ${isLoggedIn ? "🛒 加入購物車" : "請登入後購買"}
+            <button class="btn-submit" style="margin-top:30px; font-size:18px; padding:18px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
+                ${isLoggedIn ? "🛒 加入購物車" : "請先登入後購買"}
             </button>
         `;
         showPage('detail');
@@ -163,7 +300,7 @@
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentUser.email, bio })
         });
-        if (res.ok) { currentUser.bio = bio; setEditMode('none'); toggleUserModal(); alert("介紹已更新！"); }
+        if (res.ok) { currentUser.bio = bio; setEditMode('none'); toggleUserModal(); alert("更新成功！"); }
     }
 
     async function savePassword() {
@@ -186,26 +323,26 @@
 
     function renderCart() {
         const container = document.getElementById('cart-container');
-        if (cart.length === 0) { container.innerHTML = "購物車目前是空的。"; return; }
+        if (cart.length === 0) { container.innerHTML = "<p style='text-align:center; color:var(--text-sub);'>購物車目前是空的。</p>"; return; }
         let total = 0;
         container.innerHTML = cart.map((item, index) => {
             const sub = item.price * item.qty; total += sub;
             return `
                 <div class="cart-item">
                     <img src="${item.img}" class="item-img">
-                    <div style="flex:1;"><b>${item.name}</b><br><small>單價: $${item.price}</small></div>
-                    <div style="display:flex; align-items:center; border:1px solid #ddd; border-radius:5px;">
-                        <button onclick="changeQty(${index}, -1)" style="padding:5px 10px; border:none;">-</button>
-                        <span style="padding:0 10px; font-weight:bold;">${item.qty}</span>
-                        <button onclick="changeQty(${index}, 1)" style="padding:5px 10px; border:none;">+</button>
+                    <div style="flex:1;"><b>${item.name}</b><br><small style="color:var(--text-sub);">單價: $${item.price}</small></div>
+                    <div class="quantity-control">
+                        <button onclick="changeQty(${index}, -1)">-</button>
+                        <span style="padding:0 12px; font-weight:bold;">${item.qty}</span>
+                        <button onclick="changeQty(${index}, 1)">+</button>
                     </div>
-                    <div style="width:100px; text-align:right; font-weight:bold;">NT$ ${sub}</div>
+                    <div style="width:100px; text-align:right; font-weight:bold; color:var(--danger);">NT$ ${sub}</div>
                 </div>`;
-        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:20px; font-size:18px;">總額：NT$ ${total}</div>`;
+        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:25px; font-size:22px;">總計金額：<span style="color:var(--danger);">NT$ ${total}</span></div>`;
     }
 
     function changeQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); renderCart(); }
-    function checkout() { alert("感謝購買！"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
+    function checkout() { alert("感謝購買，祝您有美好的一天！"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
