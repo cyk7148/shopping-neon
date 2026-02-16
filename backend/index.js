@@ -8,7 +8,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// 資料庫連線
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -16,7 +15,6 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 登入 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -27,24 +25,21 @@ app.post('/api/login', async (req, res) => {
         res.json({ 
           username: user.rows[0].username, 
           email: user.rows[0].email,
-          bio: user.rows[0].bio || "這是一個神秘的萌商城會員" 
+          bio: user.rows[0].bio || "" 
         });
       } else { res.status(401).json({ error: "密碼錯誤" }); }
     } else { res.status(404).json({ error: "帳號不存在" }); }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 更新介紹 API (核心修正)
 app.post('/api/update-bio', async (req, res) => {
   const { email, bio } = req.body;
-  if (!email) return res.status(400).json({ error: "缺少 Email" });
   try {
     await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
     res.json({ message: "Success" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 修改密碼 API
 app.post('/api/update-password', async (req, res) => {
   const { email, newPassword } = req.body;
   try {
