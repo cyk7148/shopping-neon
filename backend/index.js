@@ -8,6 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// 資料庫連線
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -30,16 +31,17 @@ app.post('/api/login', async (req, res) => {
         });
       } else { res.status(401).json({ error: "密碼錯誤" }); }
     } else { res.status(404).json({ error: "帳號不存在" }); }
-  } catch (err) { res.status(500).json({ error: "伺服器錯誤" }); }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 更新介紹 API
+// 更新介紹 API (核心修正)
 app.post('/api/update-bio', async (req, res) => {
   const { email, bio } = req.body;
+  if (!email) return res.status(400).json({ error: "缺少 Email" });
   try {
     await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
     res.json({ message: "Success" });
-  } catch (err) { res.status(500).json({ error: "更新失敗" }); }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // 修改密碼 API
@@ -49,16 +51,15 @@ app.post('/api/update-password', async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashed, email]);
     res.json({ message: "Success" });
-  } catch (err) { res.status(500).json({ error: "更新失敗" }); }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 獲取商品 API
 app.get('/api/products', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: "載入失敗" }); }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server online`));
