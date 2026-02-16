@@ -78,7 +78,7 @@
         <div id="cart-container" class="card"></div>
         <div class="card" style="text-align:right;">
             <h3>總金額: $<span id="cart-total">0</span></h3>
-            <p style="color:var(--primary); font-size:14px;">本筆預計獲得：<span id="reward-points">0</span> 積分 (0.1%)</p>
+            <p style="color:var(--primary); font-size:14px;">本筆預計獲得：<span id="reward-points">0</span> 積分 (0.1)</p>
             <button class="btn-main" onclick="checkout()">確認結帳</button>
         </div>
     </div>
@@ -136,7 +136,7 @@
         container.innerHTML = cart.map((item, idx) => { total += item.price * item.qty; return `<div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #eee;"><img src="${item.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;"><div style="flex:1"><b>${item.name}</b><br><small>$${item.price}</small></div><div style="display:flex; align-items:center; gap:8px;"><button style="border:none; background:#eee; width:25px; height:25px; border-radius:5px;" onclick="updateQty(${idx},-1)">-</button><span>${item.qty}</span><button style="border:none; background:#eee; width:25px; height:25px; border-radius:5px;" onclick="updateQty(${idx},1)">+</button></div></div>`; }).join('');
         document.getElementById('cart-total').innerText = total;
         // 顯示預計回饋點數
-        document.getElementById('reward-points').innerText = Math.floor(total * 0.001);
+        document.getElementById('reward-points').innerText = Math.floor(total * 0.1);
     }
 
     async function checkout() {
