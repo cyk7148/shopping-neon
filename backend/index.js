@@ -15,48 +15,26 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 結帳 API：新增儲存商品縮圖功能
+// 結帳 API：存入 email、商品清單、總額與首圖
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
-  if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
   try {
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1, $2, $3, $4)',
       [email, products, parseInt(total), image_url]
     );
-    res.json({ message: "結帳成功" });
+    res.json({ message: "OK" });
   } catch (err) {
-    res.status(500).json({ error: "資料庫寫入失敗" });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// 取得訂單、產品、登入、更新資料 API
+// 取得訂單與產品資訊 API
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
     const result = await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [email]);
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length > 0) {
-      const valid = await bcrypt.compare(password, user.rows[0].password);
-      if (valid) res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio });
-      else res.status(401).json({ error: "密碼錯誤" });
-    } else res.status(404).json({ error: "帳號不存在" });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/update-profile', async (req, res) => {
-  const { email, username, bio } = req.body;
-  try {
-    if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
-    if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
-    res.json({ message: "更新成功" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -67,5 +45,27 @@ app.get('/api/products', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// 會員登入與資料更新
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (user.rows.length > 0) {
+      const valid = await bcrypt.compare(password, user.rows[0].password);
+      if (valid) res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio });
+      else res.status(401).json({ error: "Fail" });
+    } else res.status(404).json({ error: "None" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/update-profile', async (req, res) => {
+  const { email, username, bio } = req.body;
+  try {
+    if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
+    if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
+    res.json({ message: "OK" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running`));
+app.listen(PORT, () => console.log(`萌伺服器啟動中`));
