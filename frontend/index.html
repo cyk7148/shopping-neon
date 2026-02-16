@@ -8,7 +8,7 @@
         :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b91d1d; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
-        /* 導覽列 - 恐龍 Logo 回歸 */
+        /* 導覽列 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; margin-left: 15px; cursor: pointer; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
@@ -32,7 +32,6 @@
         .card:hover { transform: translateY(-5px); }
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         
-        /* 數量控制器樣式 */
         .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 50%; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
         .qty-val { margin: 0 8px; font-weight: bold; font-size: 14px; }
 
@@ -114,7 +113,6 @@
         <div class="profile-row" style="border-bottom:none;"><span>積分</span><b id="u-points" style="color:orange;">0</b></div>
     </div>
     <button class="btn" style="background:#eee; color:#333;" onclick="toggleEditBox()">編輯資料</button>
-    
     <div id="edit-box" class="hidden" style="margin-top:15px; background:#fff; padding:15px; border-radius:10px; border:1px solid #eee; box-shadow:0 5px 15px rgba(0,0,0,0.05); text-align:left;">
         <label class="edit-label">暱稱</label><input id="n-name" class="edit-input">
         <label class="edit-label">個人介紹</label><textarea id="n-bio" class="edit-input" style="height:60px; resize:none;"></textarea>
@@ -184,7 +182,6 @@
         showPage('detail');
     }
     
-    // 購物車邏輯 (含圖片與數量編輯)
     function add(id) { 
         if(!user) return alert("請先登入");
         const p = products.find(x=>x.id===id);
@@ -236,25 +233,28 @@
     async function checkout() {
         if(cart.length===0) return;
         const t = document.getElementById('total').innerText;
+        // 將品名與數量結合，例如： "異世界怪獸x2, 小豬x1"
         const prodSummary = cart.map(i => `${i.name}x${i.qty}`).join(", ");
         const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: prodSummary, total: t, image_url: cart[0].image_url}) });
         if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳成功！獲得 " + d.reward + " 積分"); cart=[]; updateCartCount(); showPage('products'); }
     }
-    async function playScratch() {
-        if(points<10) return alert("積分不足 (需要 10 點)");
-        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        const d = await res.json(); document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
-    }
     
-    // 簽到修復：跳出提示框
+    // 簽到修復 (顯示錯誤訊息)
     async function doSignin() {
-        const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { 
-            points += 10; alert("✅ 簽到成功！獲得 10 積分"); toggleM(); 
-        } else {
-            const d = await res.json();
-            alert("❌ " + (d.error || "簽到失敗"));
-        }
+        try {
+            const res = await fetch(API + "/daily-signin", { 
+                method: 'POST', 
+                headers: {'Content-Type':'application/json'}, 
+                body: JSON.stringify({email: user.email}) 
+            });
+
+            if(res.ok) { 
+                points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); 
+            } else {
+                const d = await res.json();
+                alert(d.error || "簽到失敗"); // 顯示「今天已簽到」
+            }
+        } catch (e) { alert("連線錯誤"); }
     }
     
     async function updateProfile() {
@@ -276,15 +276,31 @@
             document.getElementById('edit-box').classList.add('hidden');
         }
     }
+    async function playScratch() {
+        if(points<10) return alert("積分不足 (需要 10 點)");
+        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
+        const d = await res.json(); document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
+    }
     
+    // 購買紀錄排版修正
     async function loadHistory() {
         const res = await fetch(API + `/orders?email=${user.email}`);
         const d = await res.json();
         document.getElementById('h-list').innerHTML = d.map(o=>`
-            <div style="display:flex; gap:15px; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:10px;">
-                <img src="${o.image_url}" width="50" style="border-radius:8px;">
-                <div><b style="color:var(--p);">$${o.total_price}</b><br><small style="color:#888;">${o.order_date.split('T')[0]}</small><br><span style="font-size:12px; color:#aaa;">${o.product_name}</span></div>
-            </div>`).join('') || "<p>尚無購買紀錄</p>";
+            <div style="display:flex; gap:15px; margin-bottom:15px; background:#f9f9f9; padding:15px; border-radius:15px; align-items:center;">
+                <img src="${o.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover; flex-shrink:0;">
+                
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-weight:bold; font-size:16px; color:#333;">${o.product_name.split('x')[0]}</span>
+                        <b style="color:var(--p); font-size:16px;">$${o.total_price}</b>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <small style="color:#999; font-size:13px;">${o.order_date.split('T')[0]}</small>
+                        </div>
+                </div>
+            </div>`).join('') || "<p style='text-align:center; color:#999; margin-top:50px;'>尚無購買紀錄</p>";
     }
 
     function refreshUser() {
