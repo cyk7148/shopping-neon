@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 服務前端靜態檔案
+// 靜態檔案服務
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 const pool = new Pool({
@@ -32,7 +32,7 @@ app.post('/api/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3)', [username, email, hashedPassword]);
     res.status(201).json({ message: "Success" });
-  } catch (err) { res.status(400).json({ error: "Email 已存在或資料格式錯誤" }); }
+  } catch (err) { res.status(400).json({ error: "Email 已存在或連線失敗" }); }
 });
 
 // API: 登入
@@ -46,10 +46,10 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).json({ error: "伺服器錯誤" }); }
 });
 
-// 捕捉所有其他請求並導向 index.html
+// 首頁路由
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`伺服器啟動於 port ${PORT}`));
+app.listen(PORT, () => console.log(`伺服器運行於 Port ${PORT}`));
