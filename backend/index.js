@@ -15,15 +15,15 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 商品列表
+// 1. 取得商品
 app.get('/api/products', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) { res.status(500).json({ error: "DB Error" }); }
 });
 
-// 2. 結帳 (1% 回饋 + 紀錄圖片)
+// 2. 結帳 + 1% 回饋 + 圖片紀錄
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   const reward = Math.floor(Number(total) * 0.01); 
@@ -36,7 +36,7 @@ app.post('/api/checkout', async (req, res) => {
   } catch (err) { await pool.query('ROLLBACK'); res.status(500).send(); }
 });
 
-// 3. 刮刮樂 (扣除積分 + 隨機獎勵)
+// 3. 刮刮樂邏輯
 app.post('/api/scratch-win', async (req, res) => {
   const { email } = req.body;
   try {
@@ -75,18 +75,20 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 6. 登入 & 註冊 (合併邏輯，自動註冊)
+// 6. 登入/註冊合一
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length > 0) {
-      // 登入
       if (await bcrypt.compare(password, user.rows[0].password)) {
-        res.json({ username: user.rows[0].username, email: user.rows[0].email, points: Number(user.rows[0].points) });
+        res.json({ 
+            username: user.rows[0].username, 
+            email: user.rows[0].email, 
+            points: Number(user.rows[0].points) // 強制轉數字
+        });
       } else res.status(401).send();
     } else {
-      // 自動註冊
       const hash = await bcrypt.hash(password, 10);
       const newUser = await pool.query('INSERT INTO users (username, email, password, points) VALUES ($1, $2, $3, 0) RETURNING *', ["新用戶", email, hash]);
       res.json({ username: newUser.rows[0].username, email: newUser.rows[0].email, points: 0 });
