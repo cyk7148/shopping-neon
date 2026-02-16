@@ -130,10 +130,11 @@ app.get('/api/orders', async (req, res) => {
 
 // 8. 獲取最新用戶資料 (新增這個 API，解決積分不同步的問題)
 // 每日簽到 (資料庫級別判定 - 解決無法簽到問題)
+// 每日簽到：使用 SQL 級別判定 (解決時區與判定失效問題)
 app.post('/api/daily-signin', async (req, res) => {
   const { email } = req.body;
   try {
-    // 直接下達指令：只有在「沒簽過」或「上次簽到不是今天」的情況下才更新
+    // 只有在 last_signin_date 為空或小於今天時，才准許更新
     const result = await pool.query(
         `UPDATE users 
          SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
@@ -142,18 +143,18 @@ app.post('/api/daily-signin', async (req, res) => {
         [email]
     );
 
-    // 如果更新成功，rowCount 會是 1
     if (result.rowCount > 0) {
-        res.json({ message: "OK" });
+        // 取得更新後的總積分回傳給前端
+        const updated = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
+        res.json({ message: "OK", points: Number(updated.rows[0].points) });
     } else {
-        // 如果 rowCount 是 0，代表條件不符 (今天已經簽過)
-        res.status(400).json({ error: "今天已經簽到過了喔！明天再來吧～" });
+        res.status(400).json({ error: "今天已經簽到過囉！" });
     }
-  } catch (err) { 
-    console.error("簽到錯誤:", err);
-    res.status(500).json({ error: "簽到系統異常，請洽管理員" }); 
+  } catch (err) {
+    res.status(500).json({ error: "簽到系統異常" });
   }
 });
+
 
 
 app.listen(process.env.PORT || 3000, () => console.log('Server Ready'));
