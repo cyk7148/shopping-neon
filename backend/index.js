@@ -13,27 +13,30 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// 靜態檔案服務
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 【結帳 API】確保 products 為字串格式存入
+// 【關鍵修復】結帳 API：確保欄位與 Neon 資料庫 100% 匹配
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total } = req.body;
-  if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
   
+  if (!email || !products) {
+    return res.status(400).json({ error: "資訊不完整" });
+  }
+
   try {
+    // 這裡的 total 確保轉換為整數
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
       [email, products, parseInt(total)]
     );
-    res.json({ message: "訂單已成功存檔" });
+    res.json({ message: "結帳成功" });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "資料庫寫入失敗" });
+    console.error("資料庫寫入失敗原因:", err.message);
+    res.status(500).json({ error: "伺服器錯誤: " + err.message });
   }
 });
 
-// 取得購買紀錄
+// 取得購買紀錄 API
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
@@ -42,7 +45,7 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 登入、註冊與更新資料 API
+// 登入、資料更新與產品 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -72,4 +75,4 @@ app.get('/api/products', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`伺服器運行中 Port: ${PORT}`));
+app.listen(PORT, () => console.log(`伺服器運行中`));
