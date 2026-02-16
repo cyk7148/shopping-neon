@@ -13,48 +13,54 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
+// 靜態檔案服務
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 【新增】結帳 API：將購物車內容存入資料庫
+// 【結帳 API】確保 products 為字串格式存入
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total } = req.body;
+  if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
+  
   try {
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
-      [email, products, total]
+      [email, products, parseInt(total)]
     );
-    res.json({ message: "Order created" });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+    res.json({ message: "訂單已成功存檔" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "資料庫寫入失敗" });
+  }
 });
 
-// 【新增】取得訂單 API：讓會員中心能讀取
+// 取得購買紀錄
 app.get('/api/orders', async (req, res) => {
-  const email = req.query.email;
+  const { email } = req.query;
   try {
     const result = await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [email]);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 登入與更新個人資料 API
+// 登入、註冊與更新資料 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length > 0) {
       const valid = await bcrypt.compare(password, user.rows[0].password);
-      if (valid) {
-        res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio });
-      } else { res.status(401).json({ error: "Wrong password" }); }
-    } else { res.status(404).json({ error: "User not found" }); }
+      if (valid) { res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio }); }
+      else { res.status(401).json({ error: "密碼錯誤" }); }
+    } else { res.status(404).json({ error: "帳號不存在" }); }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio } = req.body;
   try {
-    await pool.query('UPDATE users SET username = $1, bio = $2 WHERE email = $3', [username, bio, email]);
-    res.json({ message: "Success" });
+    if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
+    if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
+    res.json({ message: "更新成功" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -66,4 +72,4 @@ app.get('/api/products', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server Online`));
+app.listen(PORT, () => console.log(`伺服器運行中 Port: ${PORT}`));
