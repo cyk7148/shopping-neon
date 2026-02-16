@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城 - 終極修復版</title>
+    <title>萌商城 - 終極穩定版</title>
     <style>
-        :root { --p: #7db9a1; --bg: #fdfaf7; --shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b91d1d; --gold: #ffd700; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
-        /* 導覽列與選單：解決遮擋問題 */
+        /* 解決選單與內容遮擋 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-sizing: border-box; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* 彈窗與紀錄 */
+        /* 修復彈窗：確保手機鍵盤不擋住 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 380px; text-align: center; position: relative; max-height: 80vh; overflow-y: auto; }
-        #history-panel { position: fixed; right: -320px; top: 0; width: 320px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 25px; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; }
-        #history-panel.active { right: 0; }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 380px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; padding: 20px; }
-        .card { background: white; border-radius: 20px; box-shadow: var(--shadow); cursor: pointer; overflow: hidden; transition: 0.3s; }
+        /* 商品展示 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; cursor: pointer; transition: 0.3s; }
         .card:hover { transform: translateY(-8px); }
         .btn { background: var(--p); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .hidden { display: none !important; }
@@ -38,32 +37,14 @@
 
 <div id="mask" class="mask" onclick="toggleM()"></div>
 <div id="menu" class="drawer">
-    <div onclick="openM('scratch')" style="padding:15px; border-bottom:1px solid #eee;">🧧 蛇年刮刮樂</div>
-    <div onclick="openM('signin')" style="padding:15px; border-bottom:1px solid #eee;">📅 每日簽到</div>
+    <div onclick="openModal('scratch')" style="padding:15px; border-bottom:1px solid #eee;">🧧 蛇年刮刮樂</div>
+    <div onclick="openModal('signin')" style="padding:15px; border-bottom:1px solid #eee;">📅 每日簽到</div>
     <div onclick="showPage('cart')" style="padding:15px; border-bottom:1px solid #eee;">🛒 購物車</div>
-    <div onclick="toggleH()" style="padding:15px; border-bottom:1px solid #eee;">📜 購買紀錄</div>
-    <div onclick="openM('user')" style="padding:15px; border-bottom:1px solid #eee;">👤 會員中心</div>
+    <div onclick="openModal('user')" style="padding:15px; border-bottom:1px solid #eee;">👤 會員中心</div>
     <div onclick="logout()" style="padding:15px; color:red; margin-top:50px;">🚪 登出</div>
 </div>
 
-<div id="history-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3>🛍️ 購買紀錄</h3><button onclick="toggleH()" style="border:none; background:none; font-size:20px;">✕</button>
-    </div>
-    <div id="h-list"></div>
-</div>
-
-<div class="container">
-    <div id="page-products" class="grid">載入中...</div>
-    <div id="page-cart" class="hidden" style="padding:20px;">
-        <h2>🛒 我的購物車</h2><div id="cart-items"></div>
-        <div style="text-align:right; margin-top:20px;">
-            <h3>總計: $<span id="total">0</span></h3>
-            <p style="color:var(--p);">1% 回饋：<span id="reward">0</span> 積分</p>
-            <button class="btn" onclick="checkout()">確認結帳</button>
-        </div>
-    </div>
-</div>
+<div id="page-products" class="grid">載入中...</div>
 
 <div id="modal-user" class="modal"><div class="modal-card">
     <button onclick="closeModals()" style="position:absolute; right:20px; top:20px; border:none; background:none; font-size:20px;">✕</button>
@@ -71,8 +52,7 @@
     <div style="text-align:left; background:#f9f9f9; padding:20px; border-radius:20px;">
         <p>帳號：<b id="u-email"></b></p>
         <p>密碼：<b>********</b></p>
-        <p>積分：<b id="u-points" style="color:orange;">0</b></p>
-    </div>
+        <p>積分：<b id="u-points" style="color:orange;">0</b></p> </div>
 </div></div>
 
 <script>
@@ -80,41 +60,40 @@
     let products = [], cart = [], user = null, points = 0;
 
     function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
-    function toggleH() { document.getElementById('history-panel').classList.toggle('active'); }
-    function openM(id) { toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') refreshU(); }
+    function openModal(id) { toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') refreshU(); }
     function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); toggleM(); }
+    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); load(); toggleM(); }
 
     async function load() {
         try {
             const res = await fetch(API + "/products");
-            if(!res.ok) throw new Error();
             products = await res.json();
             document.getElementById('page-products').innerHTML = products.map(p => `
                 <div class="card" onclick="add(${p.id})">
                     <img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover;">
                     <div style="padding:15px;"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>
                 </div>`).join('');
-        } catch(e) { document.getElementById('page-products').innerText = "連線失敗，請檢查後端 Render 是否正常。"; }
+        } catch(e) { document.getElementById('page-products').innerText = "連線失敗，請重新整理。"; }
     }
 
-    function add(id) { if(!user) return alert("請登入"); cart.push(products.find(x=>x.id===id)); alert("已加入！"); }
+    function add(id) { if(!user) return alert("請登入"); cart.push(products.find(x=>x.id===id)); alert("已加入購物車"); }
 
     function refreshU() {
         if(!user) return;
         document.getElementById('u-email').innerText = user.email || "未登入";
-        document.getElementById('u-points').innerText = isNaN(points) ? 0 : points; // 徹底解決 NaN
+        // 強制轉換為數字，解決 NaN 問題
+        const displayPoints = Number(points);
+        document.getElementById('u-points').innerText = isNaN(displayPoints) ? 0 : displayPoints;
     }
 
-    // 啟動初始化程序：防止 localStorage 損壞導致空白
     window.onload = () => {
-        try {
-            const saved = localStorage.getItem('萌商城_user');
-            if(saved) {
-                user = JSON.parse(saved);
+        const saved = localStorage.getItem('萌商城_user');
+        if(saved) {
+            try { 
+                user = JSON.parse(saved); 
                 points = Number(user.points || 0);
-            }
-        } catch(e) { localStorage.removeItem('萌商城_user'); }
+            } catch(e) { localStorage.removeItem('萌商城_user'); }
+        }
         load();
     };
 </script>
