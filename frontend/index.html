@@ -32,6 +32,7 @@
         .card:hover { transform: translateY(-5px); }
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         
+        /* 數量控制器樣式 */
         .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 50%; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
         .qty-val { margin: 0 8px; font-weight: bold; font-size: 14px; }
 
@@ -249,10 +250,10 @@
     async function doSignin() {
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
         if(res.ok) { 
-            points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); 
+            points += 10; alert("✅ 簽到成功！獲得 10 積分"); toggleM(); 
         } else {
             const d = await res.json();
-            alert(d.error || "簽到失敗");
+            alert("❌ " + (d.error || "簽到失敗"));
         }
     }
     
