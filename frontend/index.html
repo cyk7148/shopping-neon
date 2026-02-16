@@ -6,12 +6,12 @@
     <title>萌商城</title>
     <link rel="icon" href="https://img.icons8.com/color/96/dinosaur.png">
     <style>
-        :root { --primary: #7db9a1; --primary-bg: #f0f7f4; --bg: #fdfaf7; --text: #4a4a4a; --shadow: 0 12px 30px rgba(0,0,0,0.06); --accent: #f4b183; }
+        :root { --primary: #7db9a1; --primary-bg: #f0f7f4; --bg: #fdfaf7; --text: #4a4a4a; --shadow: 0 12px 40px rgba(0,0,0,0.08); --accent: #f4b183; --danger: #e67e73; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
         
         /* 導覽列 */
-        header { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 0 5%; display: flex; align-items: center; height: 70px; box-shadow: 0 2px 15px rgba(0,0,0,0.02); position: sticky; top: 0; z-index: 100; }
-        .menu-btn { font-size: 26px; cursor: pointer; color: var(--primary); border: none; background: none; margin-right: 15px; }
+        header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 0 5%; display: flex; align-items: center; height: 70px; box-shadow: 0 2px 15px rgba(0,0,0,0.02); position: sticky; top: 0; z-index: 100; }
+        .menu-btn { font-size: 26px; cursor: pointer; color: var(--primary); border: none; background: none; margin-right: 15px; transition: 0.3s; }
         .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; color: var(--primary); cursor: pointer; flex: 1; }
         .logo img { width: 38px; height: 38px; object-fit: contain; }
 
@@ -19,28 +19,35 @@
         .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.2); z-index: 1001; }
         .drawer { width: 280px; background: white; height: 100%; padding: 40px 25px; box-sizing: border-box; transform: translateX(0); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .drawer.closed { transform: translateX(-100%); }
-        .drawer-item { padding: 15px; border-radius: 16px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; color: #666; transition: 0.2s; }
+        .drawer-item { padding: 15px; border-radius: 18px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; color: #666; transition: 0.2s; }
         .drawer-item:hover { background: var(--primary-bg); color: var(--primary); transform: translateX(5px); }
 
-        /* 購買紀錄側邊欄 */
-        #history-panel { position: fixed; right: 0; top: 0; width: 320px; height: 100%; background: white; box-shadow: -10px 0 30px rgba(0,0,0,0.05); padding: 30px; box-sizing: border-box; z-index: 2005; transition: 0.3s; overflow-y: auto; }
+        /* 購買紀錄面板美化 */
+        #history-panel { position: fixed; right: 0; top: 0; width: 350px; height: 100%; background: white; box-shadow: -10px 0 40px rgba(0,0,0,0.1); padding: 30px; box-sizing: border-box; z-index: 2005; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
         #history-panel.closed { transform: translateX(100%); }
+        .history-card { background: white; border: 1px solid #f0f0f0; padding: 18px; border-radius: 22px; margin-bottom: 15px; transition: 0.3s; }
+        .history-card:hover { border-color: var(--primary); box-shadow: 0 5px 15px rgba(125,185,161,0.1); }
+        .history-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; background: #eee; }
+
+        /* 精緻關閉按鈕 */
+        .btn-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f5f5f5; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.3s; }
+        .btn-close:hover { background: var(--danger); color: white; transform: rotate(90deg); }
 
         .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none !important; }
-        .card { background: white; border-radius: 28px; box-shadow: var(--shadow); padding: 25px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.01); }
+        .card { background: white; border-radius: 30px; box-shadow: var(--shadow); padding: 25px; margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.01); }
         
         /* 購物車樣式 */
-        .item-row { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f8f8f8; text-align: left; }
-        .item-img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; }
-        .qty-btn { background: #eee; border: none; width: 28px; height: 28px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .cart-row { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f8f8f8; }
+        .qty-btn { background: var(--primary-bg); border: none; width: 32px; height: 32px; border-radius: 10px; cursor: pointer; color: var(--primary); font-weight: 800; font-size: 16px; }
 
-        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 18px; cursor: pointer; width: 100%; font-weight: 700; font-size: 16px; transition: 0.3s; }
-        
-        /* 彈窗樣式 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2010; }
-        .modal-card { background: white; padding: 35px; border-radius: 30px; width: 360px; text-align: center; }
-        .input-edit { width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 12px; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 20px; cursor: pointer; width: 100%; font-weight: 700; font-size: 16px; transition: 0.3s; box-shadow: 0 8px 20px rgba(125,185,161,0.2); }
+        .btn-main:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2010; }
+        .modal-card { background: white; padding: 40px; border-radius: 35px; width: 360px; text-align: center; box-shadow: var(--shadow); position: relative; }
+        .input-edit { width: 100%; padding: 14px; border: 1px solid #eee; border-radius: 15px; margin-bottom: 12px; outline: none; transition: 0.3s; }
+        .input-edit:focus { border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -59,12 +66,15 @@
         <div class="drawer-item" onclick="toggleHistoryPanel(); toggleDrawer();">📜 購買紀錄</div>
         <div class="drawer-item" onclick="openModal('user-modal')">👤 會員中心</div>
         <div class="drawer-item" id="btn-login-nav" onclick="showPage('login'); toggleDrawer();">🔑 登入</div>
-        <div class="drawer-item hidden" id="btn-logout-nav" onclick="logout(); toggleDrawer();" style="color:#e67e73; margin-top:30px;">🚪 登出帳號</div>
+        <div class="drawer-item hidden" id="btn-logout-nav" onclick="logout(); toggleDrawer();" style="color:var(--danger); margin-top:40px;">🚪 登出帳號</div>
     </div>
 </div>
 
 <div id="history-panel" class="closed">
-    <div style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3>🛍️ 購買紀錄</h3><button onclick="toggleHistoryPanel()" style="border:none; background:none; font-size:20px; cursor:pointer;">✕</button></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h3 style="margin:0; font-size:22px; font-weight:900;">🛍️ 購買紀錄</h3>
+        <button class="btn-close" onclick="toggleHistoryPanel()">✕</button>
+    </div>
     <div id="history-list"></div>
 </div>
 
@@ -72,44 +82,60 @@
     <div id="page-products" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:30px;"></div>
     
     <div id="page-detail" class="hidden">
-        <div id="detail-content" class="card"></div>
-        <p style="text-align:center; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
+        <div id="detail-content" class="card" style="text-align:center;"></div>
+        <p style="text-align:center; cursor:pointer; color:#bbb; margin-top:20px;" onclick="showPage('products')">← 返回探索商品</p>
     </div>
 
     <div id="page-cart" class="hidden">
-        <h2 style="margin-bottom:20px;">🛒 我的購物車</h2>
+        <h2 style="margin-bottom:25px; font-weight:900;">🛒 我的購物車</h2>
         <div id="cart-container" class="card"></div>
-        <div class="card" style="text-align:right;"><h3>總計: $<span id="cart-total">0</span></h3><button class="btn-main" onclick="checkout()">立即結帳</button></div>
+        <div class="card" style="text-align:right; background: var(--primary-bg);">
+            <h3 style="margin-top:0;">總金額: $<span id="cart-total">0</span></h3>
+            <button class="btn-main" onclick="checkout()">確認結帳</button>
+        </div>
     </div>
 
     <div id="page-login" class="hidden">
-        <div class="card" style="max-width:350px; margin:0 auto; text-align:center;">
-            <h2>登入</h2>
-            <input type="email" id="login-email" class="input-edit" placeholder="Email"><br>
-            <input type="password" id="login-password" class="input-edit" placeholder="密碼"><br>
-            <button class="btn-main" onclick="apiLogin()" style="margin-top:10px;">進入商城</button>
+        <div class="card" style="max-width:380px; margin:0 auto; text-align:center; padding:50px;">
+            <h2 style="margin-bottom:30px;">登入萌商城</h2>
+            <input type="email" id="login-email" class="input-edit" placeholder="電子郵件"><br>
+            <input type="password" id="login-password" class="input-edit" placeholder="登入密碼"><br>
+            <button class="btn-main" onclick="apiLogin()" style="margin-top:15px;">開啟購物之旅</button>
         </div>
     </div>
 </div>
 
 <div id="user-modal" class="hidden modal-overlay">
     <div class="modal-card">
-        <h3>會員中心</h3>
-        <p>帳號：<b id="m-email"></b></p>
-        <p>暱稱：<b id="m-name"></b></p>
-        <p>介紹：<b id="m-bio"></b></p>
-        <p>積分：<b id="m-points" style="color:var(--accent);">0</b></p>
-        <button class="btn-main" style="background:#f0f2f0; color:#444; margin:15px 0;" onclick="document.getElementById('edit-box').classList.toggle('hidden')">編輯資料</button>
-        <div id="edit-box" class="hidden">
-            <input id="n-name" class="input-edit" placeholder="新暱稱"><button onclick="saveF('username','n-name')" class="btn-main" style="padding:10px; margin-bottom:10px;">修改暱稱</button>
-            <input id="n-bio" class="input-edit" placeholder="新介紹"><button onclick="saveF('bio','n-bio')" class="btn-main" style="padding:10px;">修改介紹</button>
+        <div style="position:absolute; right:25px; top:25px;"><button class="btn-close" onclick="closeModals()">✕</button></div>
+        <h3 style="font-size:24px; margin-top:0;">會員中心</h3>
+        <div style="text-align:left; background:#fafafa; padding:20px; border-radius:20px; margin-bottom:20px;">
+            <p>帳號：<b id="m-email"></b></p>
+            <p>暱稱：<b id="m-name"></b></p>
+            <p>介紹：<b id="m-bio"></b></p>
+            <p>積分：<b id="m-points" style="color:var(--accent);">0</b></p>
         </div>
-        <button onclick="closeModals()" style="width:100%; border:none; background:none; color:#bbb; cursor:pointer; margin-top:20px;">關閉</button>
+        <button class="btn-main" style="background:#eee; color:#444;" onclick="document.getElementById('edit-box').classList.toggle('hidden')">編輯個人資料</button>
+        <div id="edit-box" class="hidden" style="margin-top:20px;">
+            <div class="edit-row"><input id="n-name" class="input-edit" placeholder="新暱稱"><button onclick="saveF('username','n-name')" class="btn-main" style="padding:10px; width:70px; font-size:12px;">修改</button></div>
+            <div class="edit-row"><input id="n-bio" class="input-edit" placeholder="新介紹"><button onclick="saveF('bio','n-bio')" class="btn-main" style="padding:10px; width:70px; font-size:12px;">修改</button></div>
+        </div>
     </div>
 </div>
 
-<div id="modal-signin" class="hidden modal-overlay"><div class="modal-card"><h2>每日簽到</h2><p>獲得 +10 積分</p><div id="signin-status" style="margin:20px 0; font-weight:800; color:var(--primary);"></div><button id="btn-do-signin" class="btn-main" onclick="doSignIn()">立即簽到</button><button onclick="closeModals()" style="border:none; background:none; color:#bbb; margin-top:20px; cursor:pointer;">取消</button></div></div>
-<div id="modal-lottery" class="hidden modal-overlay"><div class="modal-card"><h2>幸運抽獎</h2><p>積分餘額: <span id="user-points-display">0</span></p><div id="lottery-result" style="margin:20px 0; color:var(--accent); font-weight:800;"></div><button class="btn-main" onclick="doLottery()">消耗 20 積分抽獎</button><button onclick="closeModals()" style="border:none; background:none; color:#bbb; margin-top:20px; cursor:pointer;">關閉</button></div></div>
+<div id="modal-signin" class="hidden modal-overlay"><div class="modal-card">
+    <div style="position:absolute; right:20px; top:20px;"><button class="btn-close" onclick="closeModals()">✕</button></div>
+    <h2 style="color:var(--primary);">每日簽到</h2><p>今日可領取 10 積分</p>
+    <div id="signin-status" style="margin:20px 0; font-weight:800; font-size:18px;">尚未簽到</div>
+    <button id="btn-do-signin" class="btn-main" onclick="doSignIn()">立即簽到</button>
+</div></div>
+
+<div id="modal-lottery" class="hidden modal-overlay"><div class="modal-card">
+    <div style="position:absolute; right:20px; top:20px;"><button class="btn-close" onclick="closeModals()">✕</button></div>
+    <h2>幸運抽獎</h2><p>積分餘額: <span id="user-points-display" style="color:var(--accent); font-weight:900;">0</span></p>
+    <div id="lottery-result" style="margin:25px 0; padding:20px; border:2px dashed var(--primary); border-radius:20px;">試試手氣吧！</div>
+    <button class="btn-main" onclick="doLottery()">消耗 20 積分抽獎</button>
+</div></div>
 
 <script>
     const API_URL = "/api"; 
@@ -119,74 +145,81 @@
     function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')); }
     function toggleHistoryPanel() { if(!currentUser) return alert("請登入"); document.getElementById('history-panel').classList.toggle('closed'); if(!document.getElementById('history-panel').classList.contains('closed')) loadOrders(); }
 
-    function openModal(id) { if(!currentUser) return alert("請登入"); toggleDrawer(); if(id === 'user-modal') { document.getElementById('m-email').innerText = currentUser.email; document.getElementById('m-name').innerText = currentUser.username; document.getElementById('m-bio').innerText = currentUser.bio || "網頁創作者"; document.getElementById('m-points').innerText = userPoints; } if(id === 'modal-lottery') { document.getElementById('user-points-display').innerText = userPoints; document.getElementById('lottery-result').innerText = ""; } document.getElementById(id).classList.remove('hidden'); }
+    function openModal(id) {
+        if(!currentUser) return alert("請先登入");
+        toggleDrawer();
+        if(id === 'user-modal') {
+            document.getElementById('m-email').innerText = currentUser.email;
+            document.getElementById('m-name').innerText = currentUser.username;
+            document.getElementById('m-bio').innerText = currentUser.bio || "網頁創作者";
+            document.getElementById('m-points').innerText = userPoints;
+        }
+        if(id === 'modal-lottery') document.getElementById('user-points-display').innerText = userPoints;
+        document.getElementById(id).classList.remove('hidden');
+    }
 
     function showPage(p) { document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden')); document.getElementById('page-' + p).classList.remove('hidden'); if(p==='cart') renderCart(); }
-
-    async function loadProducts() {
-        const res = await fetch(`${API_URL}/products`);
-        allProducts = await res.json();
-        document.getElementById('page-products').innerHTML = allProducts.map(p => `
-            <div class="card" onclick="showDetail(${p.id})" style="cursor:pointer;">
-                <img src="${p.image_url}" style="width:100%; height:220px; object-fit:cover; border-radius:18px;">
-                <div style="padding:15px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--primary); font-weight:800; font-size:18px;">$${p.price}</p></div>
-            </div>`).join('');
-    }
 
     function showDetail(id) {
         const p = allProducts.find(x => x.id === id);
         document.getElementById('detail-content').innerHTML = `
-            <img src="${p.image_url}" style="width:100%; max-width:400px; border-radius:20px; margin-bottom:20px;">
-            <h1>${p.name}</h1><div style="color:var(--primary); font-size:26px; font-weight:900;">$${p.price}</div>
-            <p style="text-align:left; background:#f9f9f9; padding:20px; border-radius:15px; line-height:1.6; margin-top:20px;">${p.description}</p>
+            <img src="${p.image_url}" style="width:100%; max-width:400px; border-radius:25px; margin-bottom:25px; box-shadow:var(--shadow);">
+            <h1 style="font-size:32px; margin:0;">${p.name}</h1>
+            <div style="color:var(--primary); font-size:28px; font-weight:900; margin:15px 0;">$${p.price}</div>
+            <p style="background:#fcfcfc; padding:25px; border-radius:22px; line-height:1.7; text-align:left; color:#666;">${p.description}</p>
             <button class="btn-main" onclick="addToCart(${p.id})" style="margin-top:20px;">🛒 加入購物車</button>`;
         showPage('detail');
     }
 
     function renderCart() {
         const container = document.getElementById('cart-container');
-        if (cart.length === 0) { container.innerHTML = "<p>購物車是空的</p>"; document.getElementById('cart-total').innerText="0"; return; }
+        if (cart.length === 0) { container.innerHTML = "<p style='text-align:center; padding:40px; color:#ccc;'>購物車目前空空的...</p>"; document.getElementById('cart-total').innerText="0"; return; }
         let total = 0;
         container.innerHTML = cart.map((item, idx) => {
             total += item.price * item.qty;
-            return `<div class="item-row"><img src="${item.image_url}" class="item-img"><div style="flex:1"><b>${item.name}</b><br><small>$${item.price}</small></div>
+            return `<div class="cart-row"><img src="${item.image_url}" class="item-img"><div style="flex:1"><b>${item.name}</b><br><small>$${item.price}</small></div>
             <div style="display:flex; align-items:center; gap:10px;"><button class="qty-btn" onclick="updateQty(${idx},-1)">-</button><span>${item.qty}</span><button class="qty-btn" onclick="updateQty(${idx},1)">+</button></div></div>`;
         }).join('');
         document.getElementById('cart-total').innerText = total;
     }
 
-    function updateQty(idx, d) { cart[idx].qty += d; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); updateCartCount(); }
-    function updateCartCount() { document.getElementById('cart-count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
-    function addToCart(id) { if (!currentUser) return alert("請先登入"); const p = allProducts.find(x => x.id === id); const exist = cart.find(x => x.id === id); if (exist) exist.qty++; else cart.push({ ...p, qty: 1 }); updateCartCount(); alert("已加入購物車"); }
+    function updateQty(idx, d) { cart[idx].qty += d; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); updateCount(); }
+    function addToCart(id) { if (!currentUser) return alert("請先登入"); const p = allProducts.find(x => x.id === id); const exist = cart.find(x => x.id === id); if (exist) exist.qty++; else cart.push({ ...p, qty: 1 }); updateCount(); alert("成功加入購物車！"); }
+    function updateCount() { document.getElementById('cart-count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
 
     async function checkout() {
         if(cart.length===0) return;
-        const productsStr = cart.map(i => `${i.name}(x${i.qty})`).join(', ');
-        const res = await fetch(`${API_URL}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, products: productsStr, total: document.getElementById('cart-total').innerText, image_url: cart[0].image_url }) });
-        if(res.ok) { alert("結帳成功！"); cart = []; updateCartCount(); showPage('products'); }
+        const res = await fetch(`${API_URL}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, products: cart.map(i=>`${i.name}(x${i.qty})`).join(', '), total: document.getElementById('cart-total').innerText, image_url: cart[0].image_url }) });
+        if(res.ok) { alert("結帳成功！請在紀錄中查看"); cart = []; updateCount(); showPage('products'); }
     }
 
     async function loadOrders() {
         const res = await fetch(`${API_URL}/orders?email=${currentUser.email}`);
         const data = await res.json();
         document.getElementById('history-list').innerHTML = data.map(o => `
-            <div class="item-row"><img src="${o.image_url}" class="item-img"><div style="flex:1;"><b>$${o.total_price}</b><br><small>${o.product_name}</small></div></div>
-        `).join('') || "尚無紀錄";
+            <div class="history-card">
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
+                    <img src="${o.image_url}" class="history-img">
+                    <div style="flex:1;"><b style="color:var(--primary); font-size:16px;">$${o.total_price}</b><br><small style="color:#bbb;">${o.order_date.split('T')[0]}</small></div>
+                </div>
+                <div style="font-size:13px; color:#777; line-height:1.4;">${o.product_name}</div>
+            </div>`).join('') || "<p style='text-align:center; color:#ccc;'>尚無購買紀錄</p>";
+    }
+
+    async function loadProducts() {
+        const res = await fetch(`${API_URL}/products`);
+        allProducts = await res.json();
+        document.getElementById('page-products').innerHTML = allProducts.map(p => `
+            <div class="card" onclick="showDetail(${p.id})" style="cursor:pointer;">
+                <img src="${p.image_url}" style="width:100%; height:230px; object-fit:cover; border-radius:22px;">
+                <div style="padding:15px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--primary); font-weight:800; font-size:20px;">$${p.price}</p></div>
+            </div>`).join('');
     }
 
     async function apiLogin() {
         const e = document.getElementById('login-email').value, p = document.getElementById('login-password').value;
         const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: e, password: p }) });
-        if (res.ok) { updateLoginUI(await res.json()); showPage('products'); loadProducts(); } else alert("登入失敗");
+        if (res.ok) { updateLoginUI(await res.json()); showPage('products'); loadProducts(); } else alert("登入失敗，請檢查帳密");
     }
 
-    function updateLoginUI(user) { currentUser = user; const loginBtn = document.getElementById('btn-login-nav'), logoutBtn = document.getElementById('btn-logout-nav'); if (user) { loginBtn.classList.add('hidden'); logoutBtn.classList.remove('hidden'); localStorage.setItem('萌商城_user', JSON.stringify(user)); } else { loginBtn.classList.remove('hidden'); logoutBtn.classList.add('hidden'); localStorage.removeItem('萌商城_user'); } }
-    function logout() { updateLoginUI(null); showPage('products'); }
-    function doSignIn() { if(hasSignedIn) return; hasSignedIn = true; userPoints += 10; document.getElementById('signin-status').innerText = "今日簽到成功！"; alert("獲得10積分"); }
-    function doLottery() { if(userPoints<20) return alert("積分不足"); userPoints-=20; const ps=["🎁 貼紙","🍦 冰淇淋","🎉 9折券"]; document.getElementById('lottery-result').innerText = "中獎了: " + ps[Math.floor(Math.random()*ps.length)]; document.getElementById('user-points-display').innerText = userPoints; }
-    async function saveF(f, id) { const v = document.getElementById(id).value; const res = await fetch(`${API_URL}/update-profile`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, [f]: v }) }); if (res.ok) { currentUser[f] = v; alert("修改成功"); openModal('user-modal'); } }
-
-    const saved = localStorage.getItem('萌商城_user'); if (saved) updateLoginUI(JSON.parse(saved)); loadProducts();
-</script>
-</body>
-</html>
+    function updateLoginUI(user) { currentUser = user; const loginBtn = document.getElementById('btn-
