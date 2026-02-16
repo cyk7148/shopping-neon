@@ -71,7 +71,7 @@
             <button class="btn-submit" onclick="savePassword()">更新密碼</button>
         </div>
         <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-weight:600; margin-top:25px; cursor:pointer;">登出帳號</button>
-        <button onclick="toggleUserModal()" style="display:block; width:100%; background:none; border:none; color:#bbb; margin-top:15px; cursor:pointer;">關閉</button>
+        <button onclick="toggleUserModal()" style="display:block; width:100%; background:none; border:none; color:#bbb; margin-top:15px; cursor:pointer;">取消並關閉</button>
     </div>
 </div>
 
@@ -106,27 +106,23 @@
         showPage('detail');
     }
 
-    // 精準修改：更新 UI 與同步儲存資訊
     function updateLoginUI(user) {
         currentUser = user;
         if (user) {
             document.getElementById('user-display').innerText = user.username + "(已登入)";
             document.getElementById('user-display').classList.remove('hidden');
             document.getElementById('login-nav-btn').classList.add('hidden');
-            localStorage.setItem('萌商城_user', JSON.stringify(user)); // 存入筆記本
+            localStorage.setItem('萌商城_user', JSON.stringify(user));
         } else {
             document.getElementById('user-display').classList.add('hidden');
             document.getElementById('login-nav-btn').classList.remove('hidden');
-            localStorage.removeItem('萌商城_user'); // 燒掉筆記本
+            localStorage.removeItem('萌商城_user');
         }
     }
 
-    // 頁面載入時檢查是否有筆記本
     function checkLoginStatus() {
         const savedUser = localStorage.getItem('萌商城_user');
-        if (savedUser) {
-            updateLoginUI(JSON.parse(savedUser));
-        }
+        if (savedUser) { updateLoginUI(JSON.parse(savedUser)); }
     }
 
     async function saveBio() {
@@ -136,12 +132,15 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentUser.email, bio: bio })
         });
+        const result = await res.json();
         if (res.ok) { 
             currentUser.bio = bio; 
-            updateLoginUI(currentUser); // 更新後也要同步存入 localStorage
+            updateLoginUI(currentUser);
             document.getElementById('display-bio').innerText = bio; 
             setEditMode('none'); 
             alert("已儲存"); 
+        } else {
+            alert("錯誤: " + result.error);
         }
     }
 
@@ -161,7 +160,7 @@
         if (!modal.classList.contains('hidden') && currentUser) {
             setEditMode('none');
             document.getElementById('modal-email').innerText = currentUser.email;
-            document.getElementById('display-bio').innerText = currentUser.bio || "尚無介紹";
+            document.getElementById('display-bio').innerText = currentUser.bio || "目前尚無介紹";
         }
     }
 
@@ -201,10 +200,7 @@
     function changeQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); renderCart(); }
     function checkout() { alert("感謝購買"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
 
-    function logout() {
-        updateLoginUI(null);
-        location.reload();
-    }
+    function logout() { updateLoginUI(null); location.reload(); }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
@@ -218,7 +214,6 @@
         } else { alert("登入失敗"); }
     }
     
-    // 初始化執行
     checkLoginStatus();
     loadProducts();
 </script>
