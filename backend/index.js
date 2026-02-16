@@ -15,13 +15,15 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 【結帳功能核心修復】
+// 【重要修正】結帳 API：確保欄位名稱與 Neon 100% 對齊
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total } = req.body;
-  if (!email || !products) return res.status(400).json({ error: "資訊不完整" });
+  if (!email || !products || total === undefined) {
+    return res.status(400).json({ error: "資訊不完整" });
+  }
 
   try {
-    // 強制轉換為整數
+    // 強制將 total 轉換為整數，避免資料庫型態錯誤
     const numericTotal = parseInt(total);
     await pool.query(
       'INSERT INTO orders (user_email, product_name, total_price) VALUES ($1, $2, $3)',
@@ -29,12 +31,12 @@ app.post('/api/checkout', async (req, res) => {
     );
     res.json({ message: "結帳成功" });
   } catch (err) {
-    console.error("結帳存檔失敗:", err.message);
-    res.status(500).json({ error: "資料庫失敗: " + err.message });
+    console.error("結帳存檔失敗原因:", err.message);
+    res.status(500).json({ error: "資料庫寫入失敗: " + err.message });
   }
 });
 
-// 取得訂單紀錄
+// 取得購買紀錄
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
@@ -43,7 +45,7 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 登入、產品與個人資料更新 API
+// 其餘 API (登入、產品、更新)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -61,7 +63,7 @@ app.post('/api/update-profile', async (req, res) => {
   try {
     if (username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [username, email]);
     if (bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
-    res.json({ message: "成功" });
+    res.json({ message: "更新成功" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -73,4 +75,4 @@ app.get('/api/products', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running`));
+app.listen(PORT, () => console.log(`伺服器運行中`));
