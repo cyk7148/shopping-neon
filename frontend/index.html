@@ -19,26 +19,16 @@
 
         /* 右側購買紀錄 - 徹底隱藏 */
         #history-panel { 
-            position: fixed; 
-            right: -100%; /* 確保完全隱藏 */
-            top: 0; 
-            width: 85%; 
-            max-width: 350px; 
-            height: 100%; 
-            background: white; 
-            z-index: 2100; 
-            transition: right 0.3s ease; 
-            padding: 25px; 
-            box-sizing: border-box; 
-            box-shadow: -5px 0 20px rgba(0,0,0,0.1); 
-            overflow-y: auto; 
+            position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; 
+            background: white; z-index: 2100; transition: right 0.3s ease; padding: 25px; 
+            box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; 
         }
         #history-panel.active { right: 0; }
 
         /* 彈窗 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; position: relative; max-height: 80vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 350px; position: relative; max-height: 85vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
 
         .card { background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; }
         .card:hover { transform: translateY(-5px); }
@@ -47,8 +37,13 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         
         /* 會員資料列樣式 */
-        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 15px; }
-        .profile-row b { color: #333; }
+        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 15px; text-align: right; }
+        .profile-row span { text-align: left; min-width: 50px; font-weight: bold; color: #888; }
+        .profile-row b { color: #333; max-width: 200px; word-wrap: break-word; }
+        
+        /* 輸入框樣式 */
+        .edit-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .edit-label { display: block; text-align: left; margin-bottom: 5px; color: #666; font-size: 14px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -85,8 +80,7 @@
     </div>
     
     <div id="page-cart" class="hidden" style="padding:20px;">
-        <h2>🛒 購物車</h2>
-        <div id="c-items"></div>
+        <h2>🛒 購物車</h2><div id="c-items"></div>
         <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
             <h3>總計: $<span id="total">0</span></h3>
             <p style="color:var(--p);">1% 回饋：<span id="reward">0</span> 積分</p>
@@ -97,8 +91,8 @@
     <div id="page-login" class="hidden" style="padding:20px; text-align:center;">
         <div class="card" style="max-width:350px; margin:auto; padding:40px;">
             <h2>登入 / 註冊</h2>
-            <input id="l-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #eee; border-radius:8px;">
-            <input id="l-pass" type="password" placeholder="密碼" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #eee; border-radius:8px;">
+            <input id="l-email" placeholder="Email" class="edit-input">
+            <input id="l-pass" type="password" placeholder="密碼" class="edit-input">
             <button class="btn" onclick="login()">進入商城</button>
         </div>
     </div>
@@ -111,15 +105,25 @@
     <div style="text-align:left; background:#f8f9fa; padding:20px; border-radius:15px; margin-bottom:20px;">
         <div class="profile-row"><span>帳號</span><b id="u-email" style="font-size:14px;"></b></div>
         <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
+        <div class="profile-row"><span>介紹</span><b id="u-bio" style="font-weight:normal;"></b></div>
         <div class="profile-row"><span>密碼</span><b>********</b></div>
         <div class="profile-row" style="border-bottom:none;"><span>積分</span><b id="u-points" style="color:orange;">0</b></div>
     </div>
 
     <button class="btn" style="background:#eee; color:#333;" onclick="toggleEditBox()">編輯資料</button>
     
-    <div id="edit-box" class="hidden" style="margin-top:15px; background:#fff; padding:15px; border-radius:10px; border:1px solid #eee; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
-        <input id="n-name" placeholder="輸入新暱稱" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box; border:1px solid #ddd; border-radius:8px;">
-        <button onclick="updateName()" class="btn">確認修改</button>
+    <div id="edit-box" class="hidden" style="margin-top:15px; background:#fff; padding:15px; border-radius:10px; border:1px solid #eee; box-shadow:0 5px 15px rgba(0,0,0,0.05); text-align:left;">
+        
+        <label class="edit-label">暱稱</label>
+        <input id="n-name" placeholder="輸入新暱稱" class="edit-input">
+        
+        <label class="edit-label">個人介紹</label>
+        <textarea id="n-bio" placeholder="寫點什麼..." class="edit-input" style="height:60px; resize:none;"></textarea>
+        
+        <label class="edit-label">新密碼 <small style="color:#999; font-weight:normal;">(若不修改請留空)</small></label>
+        <input id="n-pass" type="password" placeholder="輸入新密碼" class="edit-input">
+        
+        <button onclick="updateProfile()" class="btn">確認修改</button>
     </div>
 </div></div>
 
@@ -152,11 +156,16 @@
         if(p==='cart') renderCart();
         if(document.getElementById('menu').classList.contains('active')) toggleM();
     }
+    
+    // 編輯框開關
     function toggleEditBox() {
         const box = document.getElementById('edit-box');
         box.classList.toggle('hidden');
         if(!box.classList.contains('hidden')) {
+            // 預填舊資料
             document.getElementById('n-name').value = user.username; 
+            document.getElementById('n-bio').value = user.bio || "";
+            document.getElementById('n-pass').value = ""; // 密碼欄位清空
         }
     }
 
@@ -189,15 +198,11 @@
         document.getElementById('count').innerText = cart.length; 
         alert("已加入購物車"); 
     }
-    
-    // 購物車格式修復：恢復圖文顯示
     function renderCart() {
         const t = cart.reduce((s,i)=>s+i.price,0);
         document.getElementById('total').innerText = t;
         document.getElementById('reward').innerText = Math.floor(t*0.01);
-        
-        // 這裡恢復了圖片 + 名稱 + 價格的漂亮排版
-        document.getElementById('c-items').innerHTML = cart.map(i => `
+        document.getElementById('c-items').innerHTML = cart.map(i=>`
             <div style="display:flex; align-items:center; gap:15px; background:white; padding:10px; border-radius:15px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.03);">
                 <img src="${i.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
                 <div style="flex:1;">
@@ -215,7 +220,7 @@
             user = await res.json(); points = Number(user.points);
             localStorage.setItem('萌商城_user', JSON.stringify(user));
             showPage('products');
-        } else alert("登入失敗，請檢查帳號密碼");
+        } else alert("登入失敗");
     }
     async function checkout() {
         if(cart.length===0) return;
@@ -234,16 +239,30 @@
         if(res.ok) { points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); }
     }
     
-    // 編輯暱稱功能
-    async function updateName() {
-        const n = document.getElementById('n-name').value;
-        if(!n) return alert("請輸入新暱稱");
-        const res = await fetch(API + "/update-profile", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, username: n}) });
+    // 全功能資料更新
+    async function updateProfile() {
+        const name = document.getElementById('n-name').value;
+        const bio = document.getElementById('n-bio').value;
+        const pass = document.getElementById('n-pass').value;
+
+        if(!name) return alert("暱稱不能為空");
+
+        const payload = { email: user.email, username: name, bio: bio };
+        if(pass) payload.password = pass; // 如果有填密碼才傳送
+
+        const res = await fetch(API + "/update-profile", { 
+            method: 'POST', 
+            headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify(payload) 
+        });
+
         if(res.ok) { 
-            user.username = n; 
+            user.username = name;
+            user.bio = bio;
+            // 密碼更新後不回傳，前端不需處理
             localStorage.setItem('萌商城_user', JSON.stringify(user)); 
             refreshUser(); 
-            alert("暱稱修改成功！"); 
+            alert("資料修改成功！"); 
             document.getElementById('edit-box').classList.add('hidden');
         }
     }
@@ -258,10 +277,11 @@
             </div>`).join('') || "<p>尚無購買紀錄</p>";
     }
 
-    // 狀態管理 (NaN 防護)
+    // 狀態管理
     function refreshUser() {
         document.getElementById('u-email').innerText = user.email;
         document.getElementById('u-name').innerText = user.username;
+        document.getElementById('u-bio').innerText = user.bio || "尚無介紹";
         document.getElementById('u-points').innerText = isNaN(points) ? 0 : points;
     }
     function logout() { user=null; localStorage.removeItem('萌商城_user'); showPage('login'); toggleM(); }
