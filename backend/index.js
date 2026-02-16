@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ⚠️ 關鍵：Render 連接 Neon 必須開啟 SSL
+// Render 連接 Neon 必須開啟 SSL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -16,33 +16,38 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 同步與登入 API
+// 同步資料 API
 app.post('/api/get-user', async (req, res) => {
   try {
     const r = await pool.query('SELECT username, email, bio, points FROM users WHERE email = $1', [req.body.email]);
     if (r.rows.length > 0) {
       const u = r.rows[0];
-      res.json({ username: u.username, email: u.email, bio: u.bio || '網頁創作者', points: Number(u.points || 0) });
+      res.json({ username: u.username, email: u.email, bio: u.bio, points: Number(u.points) });
     } else res.status(404).send();
   } catch (err) { res.status(500).send(); }
 });
 
+// 登入與註冊 (包含初始招呼語)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const r = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (r.rows.length > 0 && await bcrypt.compare(password, r.rows[0].password)) {
       const u = r.rows[0];
-      res.json({ username: u.username, email: u.email, bio: u.bio || '網頁創作者', points: Number(u.points || 0) });
+      res.json({ username: u.username, email: u.email, bio: u.bio, points: Number(u.points) });
     } else if (r.rows.length === 0) {
       const hash = await bcrypt.hash(password, 10);
-      const n = await pool.query('INSERT INTO users (username, email, password, points) VALUES ($1,$2,$3,0) RETURNING *', ["新用戶", email, hash]);
-      res.json({ username: n.rows[0].username, email: n.rows[0].email, bio: '網頁創作者', points: 0 });
+      // 註冊時填入：新用戶、我是新用戶，哈囉。
+      const n = await pool.query(
+        'INSERT INTO users (username, email, password, points, bio) VALUES ($1,$2,$3,0,$4) RETURNING *', 
+        ["新用戶", email, hash, "我是新用戶，哈囉。"]
+      );
+      res.json({ username: n.rows[0].username, email: n.rows[0].email, bio: n.rows[0].bio, points: 0 });
     } else res.status(401).send();
   } catch (err) { res.status(500).send(); }
 });
 
-// 2. 簽到與刮刮樂 (1 點開刮)
+// 簽到與刮刮樂 (1 點開刮)
 app.post('/api/daily-signin', async (req, res) => {
   try {
     const result = await pool.query(
@@ -52,7 +57,7 @@ app.post('/api/daily-signin', async (req, res) => {
     if (result.rowCount > 0) {
         const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
         res.json({ message: "OK", points: Number(up.rows[0].points) });
-    } else res.status(400).json({ error: "今天已經簽到過了" });
+    } else res.status(400).json({ error: "今天已經簽到過囉！" });
   } catch (err) { res.status(500).send(); }
 });
 
@@ -70,7 +75,6 @@ app.post('/api/scratch-win', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 3. 產品、結帳與資料更新
 app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
 app.post('/api/update-profile', async (req, res) => {
     const { email, username, bio, password } = req.body;
@@ -80,7 +84,6 @@ app.post('/api/update-profile', async (req, res) => {
     } else await pool.query('UPDATE users SET username=$1, bio=$2 WHERE email=$3', [username, bio, email]);
     res.json({ message: "OK" });
 });
-
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Number(total), image_url]);
