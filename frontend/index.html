@@ -7,40 +7,37 @@
     <style>
         :root { --primary: #7db9a1; --accent: #f4b183; --bg: #fdfaf7; --text: #4a4a4a; --danger: #e67e73; --shadow: 0 12px 30px rgba(0,0,0,0.05); }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-        
-        /* 標題與登入狀態 UI 固定 */
         header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 0 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.02); height: 60px; box-sizing: border-box; }
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); cursor: pointer; }
-        .nav-right { display: flex; align-items: center; gap: 8px; }
-        .btn-cart-header { background: var(--accent); color: white; border: none; padding: 6px 15px; border-radius: 50px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .user-name-btn { background: #f0f2f0; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--primary); font-size: 12px; }
-
         .container { max-width: 850px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none !important; }
-        .card { background: white; border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(0,0,0,0.01); margin-bottom: 20px; }
+        .card { background: white; border-radius: 22px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(0,0,0,0.01); }
         
-        /* 詳情頁垂直佈局 */
-        .detail-content { padding: 35px; text-align: center; }
-        .detail-img { width: 100%; max-width: 450px; border-radius: 18px; margin-bottom: 25px; }
-        
-        /* 購物車數量調整 UI */
+        /* 商品詳情：左圖右文 */
+        .detail-flex { display: flex; gap: 30px; padding: 35px; align-items: flex-start; }
+        @media (max-width: 700px) { .detail-flex { flex-direction: column; } }
+        .detail-left { flex: 1.1; } .detail-right { flex: 1; text-align: left; }
+        .detail-img { width: 100%; border-radius: 18px; }
+
+        /* 購物車數量調整 */
         .cart-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f5f5f5; }
-        .cart-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; }
-        .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; }
         
+        /* 會員中心彈窗：找回 Email 欄位 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: white; padding: 40px; border-radius: 30px; width: 360px; max-height: 85vh; overflow-y: auto; }
+        .profile-line { margin-bottom: 15px; font-size: 15px; }
         .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 14px; cursor: pointer; width: 100%; font-weight: 600; font-size: 16px; }
         .input-field { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #eee; border-radius: 12px; box-sizing: border-box; }
-        
-        /* 會員中心格式還原 */
-        .modal-card { background: white; padding: 40px; border-radius: 30px; width: 340px; max-height: 85vh; overflow-y: auto; text-align: left; }
     </style>
 </head>
 <body>
 
 <header>
     <div class="logo" onclick="showPage('products')">萌商城</div>
-    <div class="nav-right">
-        <button class="btn-cart-header" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
+    <div class="nav-right" style="display:flex; align-items:center; gap:8px;">
+        <button class="user-name-btn" style="background:var(--accent); color:white;" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
         <span id="user-display" class="user-name-btn hidden" onclick="toggleUserModal()"></span>
         <button id="login-nav-btn" class="user-name-btn" onclick="showPage('login')">登入</button>
     </div>
@@ -48,11 +45,11 @@
 
 <div class="container">
     <div id="page-products">
-        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;">載入中...</div>
+        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;"></div>
     </div>
     
     <div id="page-detail" class="hidden">
-        <div id="detail-content" class="card detail-content"></div>
+        <div id="detail-content" class="card"></div>
         <p style="text-align:center; margin-top:20px; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
     </div>
 
@@ -63,7 +60,7 @@
     </div>
 
     <div id="page-login" class="hidden">
-        <div class="card" style="max-width:380px; margin:0 auto; padding:40px; text-align:center;">
+        <div class="card" style="max-width:350px; margin:0 auto; padding:40px; text-align:center;">
             <h2>歡迎回來</h2>
             <input type="email" id="login-email" class="input-field" placeholder="Email">
             <input type="password" id="login-password" class="input-field" placeholder="密碼">
@@ -72,17 +69,21 @@
     </div>
 </div>
 
-<div id="user-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(5px); display:flex; justify-content:center; align-items:center; z-index:1000;">
+<div id="user-modal" class="hidden modal-overlay">
     <div class="modal-card">
         <h3 style="text-align:center; margin-top:0;">會員中心</h3>
-        <p>暱稱：<b id="modal-username"></b></p>
+        <div class="profile-line">帳號：<b id="modal-email"></b></div>
+        <div class="profile-line">暱稱：<b id="modal-username"></b></div>
+        <div class="profile-line">密碼：<b>********</b></div>
+        
         <button class="user-name-btn" style="width:100%; margin-bottom:20px;" onclick="toggleEditMode()">修改暱稱</button>
-        <div id="edit-box" class="hidden"><input id="new-name" class="input-field"><button class="btn-submit" onclick="saveName()">儲存</button></div>
+        <div id="edit-box" class="hidden"><input id="new-name" class="input-field" placeholder="輸入新暱稱"><button class="btn-submit" onclick="saveName()">儲存</button></div>
+        
         <div style="border-top:1px solid #eee; padding-top:20px;">
-            <h4>🛍️ 網頁購買紀錄</h4>
-            <div id="order-history"></div>
+            <h4 style="margin:0 0 10px;">🛍️ 網頁購買紀錄</h4>
+            <div id="order-history" style="font-size:13px;"></div>
         </div>
-        <button onclick="logout()" style="color:var(--danger); background:none; border:none; width:100%; margin-top:20px; cursor:pointer; font-weight:600;">登出帳號</button>
+        <button onclick="logout()" style="color:var(--danger); background:none; border:none; width:100%; margin-top:25px; cursor:pointer; font-weight:700;">登出帳號</button>
         <button onclick="toggleUserModal()" style="color:#bbb; background:none; border:none; width:100%; margin-top:10px; cursor:pointer;">關閉</button>
     </div>
 </div>
@@ -103,18 +104,22 @@
         document.getElementById('product-list').innerHTML = allProducts.map(p => `
             <div class="card" onclick="showDetail(${p.id})">
                 <img src="${p.image_url}" style="width:100%; height:220px; object-fit:cover;">
-                <div style="padding:18px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--danger); font-weight:700;">NT$ ${p.price}</p></div>
+                <div style="padding:15px; text-align:center;"><h3>${p.name}</h3><p style="color:var(--danger)">NT$ ${p.price}</p></div>
             </div>`).join('');
     }
 
     function showDetail(id) {
         const p = allProducts.find(i => i.id === id);
         document.getElementById('detail-content').innerHTML = `
-            <img src="${p.image_url}" class="detail-img">
-            <div style="font-size:26px; font-weight:700;">${p.name}</div>
-            <div style="color:var(--danger); font-size:22px; margin:10px 0;">NT$ ${p.price}</div>
-            <div style="background:#f8f9f8; padding:15px; border-radius:12px; text-align:left; color:#666;">${p.description}</div>
-            <button class="btn-submit" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">🛒 加入購物車</button>`;
+            <div class="detail-flex">
+                <div class="detail-left"><img src="${p.image_url}" class="detail-img"></div>
+                <div class="detail-right">
+                    <h1 style="margin:0;">${p.name}</h1>
+                    <div style="color:var(--danger); font-size:28px; font-weight:800; margin:15px 0;">NT$ ${p.price}</div>
+                    <div style="color:#777; line-height:1.6; margin-bottom:30px;">${p.description}</div>
+                    <button class="btn-submit" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">🛒 加入購物車</button>
+                </div>
+            </div>`;
         showPage('detail');
     }
 
@@ -122,23 +127,19 @@
         if (!currentUser) return alert("請先登入");
         const exist = cart.find(item => item.name === n);
         if (exist) { exist.qty++; } else { cart.push({ name: n, price: p, img: i, qty: 1 }); }
-        updateCartCount();
-        alert("已成功加入購物車！");
+        updateCartCount(); alert("已加入購物車！");
     }
 
-    function updateCartCount() {
-        document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0);
-    }
+    function updateCartCount() { document.getElementById('cart-count').innerText = cart.reduce((s, i) => s + i.qty, 0); }
 
     function renderCart() {
         const container = document.getElementById('cart-container');
-        if (cart.length === 0) { container.innerHTML = "<p style='text-align:center;'>購物車是空的</p>"; return; }
+        if (cart.length === 0) { container.innerHTML = "購物車是空的"; return; }
         let total = 0;
         container.innerHTML = cart.map((item, index) => {
             const sub = item.price * item.qty; total += sub;
-            return `
-            <div class="cart-item">
-                <img src="${item.img}" class="cart-img">
+            return `<div class="cart-item">
+                <img src="${item.img}" style="width:50px; height:50px; border-radius:8px;">
                 <div style="flex:1;"><b>${item.name}</b><br><small>NT$ ${item.price}</small></div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
@@ -151,33 +152,38 @@
     }
 
     function changeQty(index, delta) {
-        cart[index].qty += delta;
-        if (cart[index].qty <= 0) cart.splice(index, 1);
-        updateCartCount();
-        renderCart();
+        cart[index].qty += delta; if (cart[index].qty <= 0) cart.splice(index, 1);
+        updateCartCount(); renderCart();
     }
 
     async function checkout() {
+        if (!currentUser) return alert("請先登入");
         if (cart.length === 0) return;
         const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         const productsStr = cart.map(i => `${i.name}(x${i.qty})`).join(', ');
-        const res = await fetch(`${API_URL}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, products: productsStr, total: total }) });
-        if (res.ok) { alert("結帳成功！訂單已存入紀錄。"); cart = []; updateCartCount(); showPage('products'); }
+        
+        const res = await fetch(`${API_URL}/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, products: productsStr, total: total })
+        });
+        if (res.ok) { alert("購買成功！"); cart = []; updateCartCount(); showPage('products'); }
+        else { alert("結帳發生錯誤，請稍後再試"); }
     }
 
     async function loadOrders() {
         const res = await fetch(`${API_URL}/orders?email=${currentUser.email}`);
         const orders = await res.json();
         document.getElementById('order-history').innerHTML = orders.length ? orders.map(o => `
-            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f9f9f9; font-size:13px;">
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f9f9f9;">
                 <span>${o.order_date.split('T')[0]} - ${o.product_name}</span><b>NT$ ${o.total_price}</b>
             </div>`).join('') : "尚無網頁購買紀錄";
     }
 
     function toggleUserModal() {
-        const m = document.getElementById('user-modal');
-        m.classList.toggle('hidden');
+        const m = document.getElementById('user-modal'); m.classList.toggle('hidden');
         if (!m.classList.contains('hidden') && currentUser) {
+            document.getElementById('modal-email').innerText = currentUser.email;
             document.getElementById('modal-username').innerText = currentUser.username;
             loadOrders();
         }
@@ -187,7 +193,7 @@
     async function saveName() {
         const newName = document.getElementById('new-name').value;
         const res = await fetch(`${API_URL}/update-profile`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, username: newName }) });
-        if (res.ok) { currentUser.username = newName; updateLoginUI(currentUser); toggleUserModal(); alert("已更新！"); }
+        if (res.ok) { currentUser.username = newName; updateLoginUI(currentUser); toggleUserModal(); alert("暱稱已更新！"); }
     }
 
     function updateLoginUI(user) {
@@ -196,12 +202,10 @@
         const loginBtn = document.getElementById('login-nav-btn');
         if (user) {
             display.innerText = user.username + "(已登入)";
-            display.classList.remove('hidden');
-            loginBtn.classList.add('hidden');
+            display.classList.remove('hidden'); loginBtn.classList.add('hidden');
             localStorage.setItem('萌商城_user', JSON.stringify(user));
         } else {
-            display.classList.add('hidden');
-            loginBtn.classList.remove('hidden');
+            display.classList.add('hidden'); loginBtn.classList.remove('hidden');
         }
     }
 
@@ -209,7 +213,8 @@
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-        if (res.ok) { updateLoginUI(await res.json()); showPage('products'); loadProducts(); } else { alert("登入失敗"); }
+        if (res.ok) { updateLoginUI(await res.json()); showPage('products'); loadProducts(); }
+        else { alert("登入失敗，請確認帳密"); }
     }
     
     const savedUser = localStorage.getItem('萌商城_user');
