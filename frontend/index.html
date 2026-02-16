@@ -3,46 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城 - 完美排版版</title>
+    <title>萌商城 - 紅色喜氣刮刮樂</title>
     <style>
-        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #b71c1c; --gold: #ffd700; }
+        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #d32f2f; --gold: #ffd700; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
+        /* 導覽列 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
         
+        /* 側邊選單 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
+        /* 彈窗通用樣式 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
         .modal-card { background: white; padding: 30px; border-radius: 30px; width: 88%; max-width: 360px; position: relative; text-align: center; max-height: 85vh; overflow-y: auto; }
         .close-btn { position: absolute; right: 15px; top: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; }
 
-        /* 會員中心列表排版 */
+        /* ---- 刮刮樂彈窗美化 (紅色主題) ---- */
+        #modal-scratch .modal-card {
+            background: linear-gradient(135deg, #d32f2f, #a50000); /* 深紅色漸層背景 */
+            border: 4px solid var(--gold); /* 金色邊框 */
+            box-shadow: 0 15px 40px rgba(165, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.2); /* 增加層次感 */
+            color: var(--gold); /* 金色標題 */
+            padding: 35px 25px;
+        }
+        #modal-scratch h2 {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            margin-bottom: 25px;
+            font-size: 26px;
+        }
+        #modal-scratch .close-btn { color: var(--gold); opacity: 0.8; }
+
+        /* 刮獎區：未刮開狀態 (擬真銀漆) */
+        #prize {
+            height: 125px;
+            display: flex; align-items: center; justify-content: center;
+            /* 銀灰色漸層加上雜點紋理，模擬刮漆效果 */
+            background: linear-gradient(135deg, #d0d0d0, #f0f0f0 50%, #c0c0c0);
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"), linear-gradient(135deg, #d0d0d0, #f0f0f0 50%, #c0c0c0);
+            border: 3px solid #a0a0a0;
+            border-radius: 15px;
+            font-size: 22px; font-weight: bold; color: #666;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+            margin: 25px 0;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        /* 刮開後的狀態 (顯示獎項) */
+        #prize.revealed {
+            background: #fffbe6; /* 米黃色紙張感 */
+            background-image: none;
+            border: 3px dashed var(--gold); /* 金色虛線框 */
+            color: #c62828; /* 紅色獎項文字 */
+            font-size: 28px;
+            text-shadow: none;
+            animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop-in { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        /* 刮獎時的晃動動畫 */
+        @keyframes scratch-shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
+        .scratching { animation: scratch-shake 0.12s infinite; }
+
+        /* 按鈕美化：金色立體風格 */
+        #scratch-btn {
+            background: linear-gradient(to bottom, #ffd700, #ffca28); /* 金色漸層 */
+            color: #8f0000; /* 深紅色文字 */
+            border: 2px solid #e6c300;
+            font-weight: 900; font-size: 18px;
+            padding: 14px;
+            box-shadow: 0 4px 0 #c69000, 0 4px 8px rgba(0,0,0,0.2); /* 立體陰影 */
+            text-shadow: 0 1px 1px rgba(255,255,255,0.4);
+            transition: all 0.1s; margin-top: 15px;
+        }
+        #scratch-btn:active:not(:disabled) {
+            transform: translateY(3px); /* 按下效果 */
+            box-shadow: 0 1px 0 #c69000, 0 2px 4px rgba(0,0,0,0.2);
+        }
+        /* ------------------------------------ */
+
+        /* 其他通用樣式 */
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn:disabled { background: #ccc !important; box-shadow: none !important; transform: none !important; color: #666 !important; }
         .profile-list { text-align: left; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
         .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; color: #555; }
         .profile-row:last-child { border-bottom: none; }
         .profile-row span { font-weight: bold; color: #888; min-width: 60px; }
         .profile-row b { color: #333; max-width: 200px; word-wrap: break-word; text-align: right; }
-
-        /* 購買紀錄排版 */
         .h-item { display: flex; gap: 15px; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 12px; align-items: center; }
         .h-img { width: 65px; height: 65px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
         .h-info { flex: 1; text-align: left; }
         .h-row1 { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; color: #333; }
-
-        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
-        .btn:disabled { background: #ccc !important; }
-
-        #prize { height: 120px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #bbb, #eee 50%, #999); border-radius: 15px; font-size: 20px; color: #666; margin: 20px 0; font-weight: bold; }
-        #prize.revealed { background: #fffbe6; color: var(--red); border: 3px solid var(--gold); font-size: 26px; }
-        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-4px, 2px); } 40% { transform: translate(4px, -2px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 2px); } }
-        .scratching { animation: shake 0.1s infinite; }
-
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         .hidden { display: none !important; }
         .edit-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
@@ -74,7 +131,6 @@
 <div class="container">
     <div id="page-products" class="grid">載入中...</div>
     <div id="page-detail" class="hidden" style="padding:20px; text-align:center;"><div id="d-content"></div><p onclick="showPage('products')" style="cursor:pointer; color:#999; margin-top:20px;">← 返回</p></div>
-    
     <div id="page-cart" class="hidden" style="padding:20px;">
         <h2>🛒 購物車</h2>
         <div id="c-items"></div>
@@ -84,7 +140,6 @@
             <button class="btn" onclick="checkout()">確認結帳</button>
         </div>
     </div>
-
     <div id="page-login" class="hidden" style="padding:50px 20px;"><input id="l-email" placeholder="Email" class="edit-input"><input id="l-pass" type="password" placeholder="密碼" class="edit-input"><button class="btn" onclick="login()">進入商城</button></div>
 </div>
 
@@ -113,7 +168,12 @@
     </div>
 </div></div>
 
-<div id="modal-scratch" class="modal"><div class="modal-card"><button class="close-btn" onclick="closeAll()">✕</button><h2>🎉 幸運刮刮卷 🎉</h2><div id="prize">✨ 點擊下方刮開 ✨</div><button id="scratch-btn" onclick="playScratch()" class="btn" style="background:var(--gold); color:#800;">👉 消耗 1 積分開刮!</button></div></div>
+<div id="modal-scratch" class="modal"><div class="modal-card">
+    <button class="close-btn" onclick="closeAll()">✕</button>
+    <h2>🎉 幸運刮刮卷 🎉</h2>
+    <div id="prize">✨ 點擊下方刮開 ✨</div>
+    <button id="scratch-btn" onclick="playScratch()">👉 消耗 1 積分開刮!</button>
+</div></div>
 
 <audio id="s-scratch" src="https://assets.mixkit.co/sfx/preview/mixkit-scratching-a-surface-2987.mp3"></audio>
 <audio id="s-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
@@ -149,6 +209,7 @@
         const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'), s_s = document.getElementById('s-scratch');
         btn.disabled = true; box.innerText = "努力刮開中..."; box.classList.add('scratching');
         try { s_s.currentTime = 0; s_s.play(); } catch(e){}
+
         try {
             const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2200)) ]);
             if(res.ok) { const d = await res.json(); box.innerText = d.prizeName; box.className = "revealed"; points = Number(d.newTotal); user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); if(d.prizeName.includes("銘謝")) document.getElementById('s-lose').play(); else document.getElementById('s-win').play(); }
@@ -162,9 +223,11 @@
     }
 
     async function doSignin() {
-        const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { const d = await res.json(); points = Number(d.points); user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); alert("✅ 簽到成功！"); toggleM(); }
-        else alert((await res.json()).error);
+        try {
+            const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
+            if(res.ok) { const d = await res.json(); points = Number(d.points); user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); alert("✅ 簽到成功！"); toggleM(); }
+            else alert((await res.json()).error);
+        } catch(e) { alert("連線失敗"); }
     }
 
     function renderCart() {
