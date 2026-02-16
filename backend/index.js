@@ -24,12 +24,9 @@ app.post('/api/checkout', async (req, res) => {
       [email, products, parseInt(total), image_url]
     );
     res.json({ message: "OK" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 取得訂單與產品資訊 API
 app.get('/api/orders', async (req, res) => {
   const { email } = req.query;
   try {
@@ -45,7 +42,6 @@ app.get('/api/products', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 會員登入與資料更新
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -68,4 +64,4 @@ app.post('/api/update-profile', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`萌伺服器啟動中`));
+app.listen(PORT, () => console.log(`Server running`));
