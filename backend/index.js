@@ -127,4 +127,21 @@ app.get('/api/orders', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
+
+// 8. 獲取最新用戶資料 (新增這個 API，解決積分不同步的問題)
+app.post('/api/get-user', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (user.rows.length > 0) {
+        res.json({ 
+            username: user.rows[0].username, 
+            email: user.rows[0].email, 
+            bio: user.rows[0].bio || '尚無介紹',
+            points: Number(user.rows[0].points || 0) 
+        });
+    } else res.status(404).send();
+  } catch (err) { res.status(500).send(); }
+});
+
 app.listen(process.env.PORT || 3000, () => console.log('Server Ready'));
