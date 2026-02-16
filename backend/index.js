@@ -19,9 +19,6 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 app.post('/api/daily-signin', async (req, res) => {
   const { email } = req.body;
   try {
-    // SQL 邏輯：直接讓資料庫判斷日期
-    // 條件：用戶存在 AND (日期是空的 OR 日期小於今天)
-    // 如果符合條件，就會更新 1 行；如果不符合(今天已簽)，更新 0 行
     const result = await pool.query(
         `UPDATE users 
          SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
@@ -31,10 +28,8 @@ app.post('/api/daily-signin', async (req, res) => {
     );
 
     if (result.rowCount > 0) {
-        // 成功更新了 1 行，代表簽到成功
         res.json({ message: "OK" });
     } else {
-        // 更新了 0 行，代表今天已經有紀錄了
         res.status(400).json({ error: "今天已經簽到過了，明天再來吧！" });
     }
   } catch (err) { 
@@ -43,7 +38,7 @@ app.post('/api/daily-signin', async (req, res) => {
   }
 });
 
-// 2. 登入 (回傳 bio 與 points)
+// 2. 登入
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -58,7 +53,6 @@ app.post('/api/login', async (req, res) => {
         });
       } else res.status(401).send();
     } else {
-      // 自動註冊
       const hash = await bcrypt.hash(password, 10);
       const newUser = await pool.query('INSERT INTO users (username, email, password, points, bio) VALUES ($1, $2, $3, 0, $4) RETURNING *', ["新用戶", email, hash, "網頁創作者"]);
       res.json({ username: newUser.rows[0].username, email: newUser.rows[0].email, bio: newUser.rows[0].bio, points: 0 });
@@ -66,7 +60,7 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 3. 更新會員資料 (支援改密碼)
+// 3. 更新會員資料
 app.post('/api/update-profile', async (req, res) => {
     const { email, username, bio, password } = req.body;
     try {
@@ -101,12 +95,13 @@ app.post('/api/checkout', async (req, res) => {
   } catch (err) { await pool.query('ROLLBACK'); res.status(500).send(); }
 });
 
-// 6. 刮刮樂
+// 6. 刮刮樂 (修改版：1 點就能刮)
 app.post('/api/scratch-win', async (req, res) => {
   const { email } = req.body;
   try {
     const userCheck = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
-    if ((userCheck.rows[0].points || 0) < 10) return res.status(400).json({ error: "積分不足" });
+    // 修改判斷：小於 1 就不能刮
+    if ((userCheck.rows[0].points || 0) < 1) return res.status(400).json({ error: "積分不足" });
 
     const prizes = await pool.query('SELECT * FROM scratch_prizes');
     const totalWeight = prizes.rows.reduce((sum, p) => sum + p.weight, 0);
@@ -117,7 +112,8 @@ app.post('/api/scratch-win', async (req, res) => {
       random -= p.weight;
     }
 
-    await pool.query('UPDATE users SET points = points - 10 + $1 WHERE email = $2', [selected.points_reward, email]);
+    // 修改扣除：只扣 1 點
+    await pool.query('UPDATE users SET points = points - 1 + $1 WHERE email = $2', [selected.points_reward, email]);
     const updatedUser = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
     res.json({ prizeName: selected.name, newTotal: Number(updatedUser.rows[0].points) });
   } catch (err) { res.status(500).send(); }
