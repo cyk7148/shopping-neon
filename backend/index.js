@@ -15,30 +15,30 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 每日簽到 (終極修復版：日期字串比對)
+// 1. 每日簽到 (資料庫級別判定版 - 最穩定)
 app.post('/api/daily-signin', async (req, res) => {
   const { email } = req.body;
   try {
-    const userRes = await pool.query('SELECT last_signin_date FROM users WHERE email = $1', [email]);
-    if (userRes.rows.length === 0) return res.status(404).json({ error: "用戶不存在" });
+    // SQL 邏輯：直接讓資料庫判斷日期
+    // 條件：用戶存在 AND (日期是空的 OR 日期小於今天)
+    // 如果符合條件，就會更新 1 行；如果不符合(今天已簽)，更新 0 行
+    const result = await pool.query(
+        `UPDATE users 
+         SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
+         WHERE email = $1 
+         AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, 
+        [email]
+    );
 
-    const lastDate = userRes.rows[0].last_signin_date;
-    // 使用 ISO 日期字串 (YYYY-MM-DD) 進行比對，忽略時分秒
-    const today = new Date().toISOString().split('T')[0];
-
-    if (lastDate) {
-        // 將資料庫日期轉為同樣格式
-        const dbDate = new Date(lastDate).toISOString().split('T')[0];
-        if (dbDate === today) {
-            return res.status(400).json({ error: "今天已經簽到過了喔！" });
-        }
+    if (result.rowCount > 0) {
+        // 成功更新了 1 行，代表簽到成功
+        res.json({ message: "OK" });
+    } else {
+        // 更新了 0 行，代表今天已經有紀錄了
+        res.status(400).json({ error: "今天已經簽到過了，明天再來吧！" });
     }
-
-    // 簽到成功：+10 分並更新日期
-    await pool.query('UPDATE users SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE WHERE email = $1', [email]);
-    res.json({ message: "OK" });
   } catch (err) { 
-    console.error(err);
+    console.error("簽到錯誤:", err);
     res.status(500).json({ error: "系統忙碌中" }); 
   }
 });
