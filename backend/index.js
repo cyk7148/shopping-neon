@@ -15,92 +15,26 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 每日簽到 (資料庫級別判定版 - 最穩定)
+// 每日簽到：SQL 級別判定
 app.post('/api/daily-signin', async (req, res) => {
   const { email } = req.body;
   try {
     const result = await pool.query(
-        `UPDATE users 
-         SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
-         WHERE email = $1 
-         AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, 
-        [email]
+        `UPDATE users SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
+         WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [email]
     );
-
     if (result.rowCount > 0) {
-        res.json({ message: "OK" });
-    } else {
-        res.status(400).json({ error: "今天已經簽到過了，明天再來吧！" });
-    }
-  } catch (err) { 
-    console.error("簽到錯誤:", err);
-    res.status(500).json({ error: "系統忙碌中" }); 
-  }
+        const updated = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
+        res.json({ message: "OK", points: Number(updated.rows[0].points) });
+    } else res.status(400).json({ error: "今天已經簽到過囉！" });
+  } catch (err) { res.status(500).json({ error: "系統異常" }); }
 });
 
-// 2. 登入
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length > 0) {
-      if (await bcrypt.compare(password, user.rows[0].password)) {
-        res.json({ 
-            username: user.rows[0].username, 
-            email: user.rows[0].email, 
-            bio: user.rows[0].bio || '尚無介紹',
-            points: Number(user.rows[0].points || 0) 
-        });
-      } else res.status(401).send();
-    } else {
-      const hash = await bcrypt.hash(password, 10);
-      const newUser = await pool.query('INSERT INTO users (username, email, password, points, bio) VALUES ($1, $2, $3, 0, $4) RETURNING *', ["新用戶", email, hash, "網頁創作者"]);
-      res.json({ username: newUser.rows[0].username, email: newUser.rows[0].email, bio: newUser.rows[0].bio, points: 0 });
-    }
-  } catch (err) { res.status(500).send(); }
-});
-
-// 3. 更新會員資料
-app.post('/api/update-profile', async (req, res) => {
-    const { email, username, bio, password } = req.body;
-    try {
-        if (password && password.trim() !== "") {
-            const hash = await bcrypt.hash(password, 10);
-            await pool.query('UPDATE users SET username = $1, bio = $2, password = $3 WHERE email = $4', [username, bio, hash, email]);
-        } else {
-            await pool.query('UPDATE users SET username = $1, bio = $2 WHERE email = $3', [username, bio, email]);
-        }
-        res.json({ message: "OK" });
-    } catch (err) { res.status(500).json({ error: "Update failed" }); }
-});
-
-// 4. 取得商品
-app.get('/api/products', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
-    res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: "DB Error" }); }
-});
-
-// 5. 結帳
-app.post('/api/checkout', async (req, res) => {
-  const { email, products, total, image_url } = req.body;
-  const reward = Math.floor(Number(total) * 0.01); 
-  try {
-    await pool.query('BEGIN');
-    await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Number(total), image_url]);
-    await pool.query('UPDATE users SET points = COALESCE(points, 0) + $1 WHERE email = $2', [reward, email]);
-    await pool.query('COMMIT');
-    res.json({ message: "OK", reward });
-  } catch (err) { await pool.query('ROLLBACK'); res.status(500).send(); }
-});
-
-// 6. 刮刮樂 (修改版：1 點就能刮)
+// 刮刮樂：1 點開刮
 app.post('/api/scratch-win', async (req, res) => {
   const { email } = req.body;
   try {
     const userCheck = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
-    // 修改判斷：小於 1 就不能刮
     if ((userCheck.rows[0].points || 0) < 1) return res.status(400).json({ error: "積分不足" });
 
     const prizes = await pool.query('SELECT * FROM scratch_prizes');
@@ -111,50 +45,52 @@ app.post('/api/scratch-win', async (req, res) => {
       if (random < p.weight) { selected = p; break; }
       random -= p.weight;
     }
-
-    // 修改扣除：只扣 1 點
     await pool.query('UPDATE users SET points = points - 1 + $1 WHERE email = $2', [selected.points_reward, email]);
-    const updatedUser = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
-    res.json({ prizeName: selected.name, newTotal: Number(updatedUser.rows[0].points) });
+    const updated = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
+    res.json({ prizeName: selected.name, newTotal: Number(updated.rows[0].points) });
   } catch (err) { res.status(500).send(); }
 });
 
-// 7. 購買紀錄
-app.get('/api/orders', async (req, res) => {
+// 登入與資料同步 API
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [req.query.email]);
-    res.json(result.rows);
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (user.rows.length > 0 && await bcrypt.compare(password, user.rows[0].password)) {
+      res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio || '尚無介紹', points: Number(user.rows[0].points || 0) });
+    } else if (user.rows.length === 0) {
+      const hash = await bcrypt.hash(password, 10);
+      const newUser = await pool.query('INSERT INTO users (username, email, password, points, bio) VALUES ($1,$2,$3,0,$4) RETURNING *', ["新用戶", email, hash, "網頁創作者"]);
+      res.json({ username: newUser.rows[0].username, email: newUser.rows[0].email, bio: newUser.rows[0].bio, points: 0 });
+    } else res.status(401).send();
   } catch (err) { res.status(500).send(); }
 });
 
-
-// 8. 獲取最新用戶資料 (新增這個 API，解決積分不同步的問題)
-// 每日簽到 (資料庫級別判定 - 解決無法簽到問題)
-// 每日簽到：使用 SQL 級別判定 (解決時區與判定失效問題)
-app.post('/api/daily-signin', async (req, res) => {
-  const { email } = req.body;
-  try {
-    // 只有在 last_signin_date 為空或小於今天時，才准許更新
-    const result = await pool.query(
-        `UPDATE users 
-         SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
-         WHERE email = $1 
-         AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, 
-        [email]
-    );
-
-    if (result.rowCount > 0) {
-        // 取得更新後的總積分回傳給前端
-        const updated = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
-        res.json({ message: "OK", points: Number(updated.rows[0].points) });
-    } else {
-        res.status(400).json({ error: "今天已經簽到過囉！" });
-    }
-  } catch (err) {
-    res.status(500).json({ error: "簽到系統異常" });
-  }
+app.post('/api/get-user', async (req, res) => {
+  const user = await pool.query('SELECT * FROM users WHERE email = $1', [req.body.email]);
+  if (user.rows.length > 0) res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio, points: Number(user.rows[0].points) });
+  else res.status(404).send();
 });
 
+// 更新資料
+app.post('/api/update-profile', async (req, res) => {
+    const { email, username, bio, password } = req.body;
+    if (password) {
+        const hash = await bcrypt.hash(password, 10);
+        await pool.query('UPDATE users SET username=$1, bio=$2, password=$3 WHERE email=$4', [username, bio, hash, email]);
+    } else await pool.query('UPDATE users SET username=$1, bio=$2 WHERE email=$3', [username, bio, email]);
+    res.json({ message: "OK" });
+});
 
+// 商品與訂單 API
+app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
+app.post('/api/checkout', async (req, res) => {
+  const { email, products, total, image_url } = req.body;
+  const reward = Math.floor(Number(total) * 0.01);
+  await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Number(total), image_url]);
+  await pool.query('UPDATE users SET points = COALESCE(points, 0) + $1 WHERE email = $2', [reward, email]);
+  res.json({ reward });
+});
+app.get('/api/orders', async (req, res) => { res.json((await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [req.query.email])).rows); });
 
 app.listen(process.env.PORT || 3000, () => console.log('Server Ready'));
