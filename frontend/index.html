@@ -11,18 +11,14 @@
         /* 導覽列 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         
-        /* 左側選單 */
+        /* 選單 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* 右側購買紀錄 - 徹底隱藏 */
-        #history-panel { 
-            position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; 
-            background: white; z-index: 2100; transition: right 0.3s ease; padding: 25px; 
-            box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; 
-        }
+        /* 右側紀錄 (隱藏) */
+        #history-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: right 0.3s ease; padding: 25px; box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; }
         #history-panel.active { right: 0; }
 
         /* 彈窗 */
@@ -33,15 +29,19 @@
         .card { background: white; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; }
         .card:hover { transform: translateY(-5px); }
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        
+        /* 數量控制器樣式 */
+        .qty-btn { background: #eee; border: none; width: 25px; height: 25px; border-radius: 50%; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .qty-val { margin: 0 8px; font-weight: bold; font-size: 14px; }
+
         .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         
-        /* 會員資料列樣式 */
+        /* 會員資料列 */
         .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; font-size: 15px; text-align: right; }
         .profile-row span { text-align: left; min-width: 50px; font-weight: bold; color: #888; }
         .profile-row b { color: #333; max-width: 200px; word-wrap: break-word; }
         
-        /* 輸入框樣式 */
         .edit-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         .edit-label { display: block; text-align: left; margin-bottom: 5px; color: #666; font-size: 14px; font-weight: bold; }
     </style>
@@ -80,7 +80,8 @@
     </div>
     
     <div id="page-cart" class="hidden" style="padding:20px;">
-        <h2>🛒 購物車</h2><div id="c-items"></div>
+        <h2>🛒 購物車</h2>
+        <div id="c-items"></div>
         <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
             <h3>總計: $<span id="total">0</span></h3>
             <p style="color:var(--p);">1% 回饋：<span id="reward">0</span> 積分</p>
@@ -101,7 +102,6 @@
 <div id="modal-user" class="modal"><div class="modal-card">
     <button onclick="closeAll()" style="position:absolute; right:15px; top:15px; border:none; background:none; font-size:20px; cursor:pointer;">✕</button>
     <h3 style="margin-bottom:25px;">會員中心</h3>
-    
     <div style="text-align:left; background:#f8f9fa; padding:20px; border-radius:15px; margin-bottom:20px;">
         <div class="profile-row"><span>帳號</span><b id="u-email" style="font-size:14px;"></b></div>
         <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
@@ -109,20 +109,11 @@
         <div class="profile-row"><span>密碼</span><b>********</b></div>
         <div class="profile-row" style="border-bottom:none;"><span>積分</span><b id="u-points" style="color:orange;">0</b></div>
     </div>
-
     <button class="btn" style="background:#eee; color:#333;" onclick="toggleEditBox()">編輯資料</button>
-    
     <div id="edit-box" class="hidden" style="margin-top:15px; background:#fff; padding:15px; border-radius:10px; border:1px solid #eee; box-shadow:0 5px 15px rgba(0,0,0,0.05); text-align:left;">
-        
-        <label class="edit-label">暱稱</label>
-        <input id="n-name" placeholder="輸入新暱稱" class="edit-input">
-        
-        <label class="edit-label">個人介紹</label>
-        <textarea id="n-bio" placeholder="寫點什麼..." class="edit-input" style="height:60px; resize:none;"></textarea>
-        
-        <label class="edit-label">新密碼 <small style="color:#999; font-weight:normal;">(若不修改請留空)</small></label>
-        <input id="n-pass" type="password" placeholder="輸入新密碼" class="edit-input">
-        
+        <label class="edit-label">暱稱</label><input id="n-name" class="edit-input">
+        <label class="edit-label">個人介紹</label><textarea id="n-bio" class="edit-input" style="height:60px; resize:none;"></textarea>
+        <label class="edit-label">新密碼 <small style="color:#999;">(不改留空)</small></label><input id="n-pass" type="password" class="edit-input">
         <button onclick="updateProfile()" class="btn">確認修改</button>
     </div>
 </div></div>
@@ -130,9 +121,7 @@
 <div id="modal-scratch" class="modal"><div class="modal-card" style="background:linear-gradient(135deg, #b91d1d, #7f1d1d); color:white; border:2px solid var(--gold);">
     <button onclick="closeAll()" style="position:absolute; right:15px; top:15px; border:none; background:none; color:white; font-size:20px; cursor:pointer;">✕</button>
     <h2>🐍 蛇年大吉</h2>
-    <div style="background:white; color:black; height:100px; display:flex; align-items:center; justify-content:center; margin:20px 0; border-radius:15px; font-weight:bold; font-size:22px; border:2px dashed var(--gold);" id="prize">
-        等待開刮...
-    </div>
+    <div style="background:white; color:black; height:100px; display:flex; align-items:center; justify-content:center; margin:20px 0; border-radius:15px; font-weight:bold; font-size:22px; border:2px dashed var(--gold);" id="prize">等待開刮...</div>
     <button onclick="playScratch()" style="background:var(--gold); color:#b91d1d; padding:15px; border-radius:12px; width:100%; border:none; font-weight:900; font-size:18px;">消耗 10 積分</button>
 </div></div>
 
@@ -156,16 +145,13 @@
         if(p==='cart') renderCart();
         if(document.getElementById('menu').classList.contains('active')) toggleM();
     }
-    
-    // 編輯框開關
     function toggleEditBox() {
         const box = document.getElementById('edit-box');
         box.classList.toggle('hidden');
         if(!box.classList.contains('hidden')) {
-            // 預填舊資料
-            document.getElementById('n-name').value = user.username; 
+            document.getElementById('n-name').value = user.username;
             document.getElementById('n-bio').value = user.bio || "";
-            document.getElementById('n-pass').value = ""; // 密碼欄位清空
+            document.getElementById('n-pass').value = "";
         }
     }
 
@@ -182,7 +168,7 @@
         } catch(e) { console.error("Error loading products"); }
     }
 
-    // 功能邏輯
+    // 詳情與加入購物車 (解決加入購物車失效)
     function showDetail(id) {
         const p = products.find(x=>x.id===id);
         document.getElementById('d-content').innerHTML = `
@@ -192,22 +178,47 @@
             <button class="btn" onclick="add(${p.id})">加入購物車</button>`;
         showPage('detail');
     }
+    
+    // 加入購物車邏輯 (升級：檢查重複並堆疊數量)
     function add(id) { 
         if(!user) return alert("請先登入");
-        cart.push(products.find(x=>x.id===id)); 
-        document.getElementById('count').innerText = cart.length; 
+        const p = products.find(x=>x.id===id);
+        const exist = cart.find(x => x.id === id);
+        if(exist) {
+            exist.qty++;
+        } else {
+            cart.push({...p, qty: 1}); // 初始數量為 1
+        }
+        updateCartCount();
         alert("已加入購物車"); 
     }
+
+    // 購物車數量編輯與計算
+    function updateQty(idx, change) {
+        cart[idx].qty += change;
+        if(cart[idx].qty <= 0) cart.splice(idx, 1); // 數量為 0 則移除
+        renderCart();
+        updateCartCount();
+    }
+    function updateCartCount() {
+        document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty, 0);
+    }
     function renderCart() {
-        const t = cart.reduce((s,i)=>s+i.price,0);
+        const t = cart.reduce((s,i)=>s + (i.price * i.qty), 0); // 總價 = 單價 * 數量
         document.getElementById('total').innerText = t;
         document.getElementById('reward').innerText = Math.floor(t*0.01);
-        document.getElementById('c-items').innerHTML = cart.map(i=>`
+        
+        document.getElementById('c-items').innerHTML = cart.map((i, idx) => `
             <div style="display:flex; align-items:center; gap:15px; background:white; padding:10px; border-radius:15px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.03);">
                 <img src="${i.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
                 <div style="flex:1;">
                     <div style="font-weight:bold; color:#333;">${i.name}</div>
                     <div style="color:var(--p); font-size:14px;">$${i.price}</div>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <button class="qty-btn" onclick="updateQty(${idx}, -1)">-</button>
+                    <span class="qty-val">${i.qty}</span>
+                    <button class="qty-btn" onclick="updateQty(${idx}, 1)">+</button>
                 </div>
             </div>`).join('') || "<p style='text-align:center; color:#999; padding:20px;'>購物車空空的喔～</p>";
     }
@@ -225,18 +236,16 @@
     async function checkout() {
         if(cart.length===0) return;
         const t = document.getElementById('total').innerText;
-        const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: "商品組合", total: t, image_url: cart[0].image_url}) });
-        if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳成功！獲得 " + d.reward + " 積分"); cart=[]; document.getElementById('count').innerText=0; showPage('products'); }
-    }
-    async function playScratch() {
-        if(points<10) return alert("積分不足 (需要 10 點)");
-        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        const d = await res.json();
-        document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
+        // 紀錄商品名稱與數量
+        const prodSummary = cart.map(i => `${i.name}x${i.qty}`).join(", ");
+        
+        const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email, products: prodSummary, total: t, image_url: cart[0].image_url}) });
+        if(res.ok) { const d = await res.json(); points += d.reward; alert("結帳成功！獲得 " + d.reward + " 積分"); cart=[]; updateCartCount(); showPage('products'); }
     }
     async function doSignin() {
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
         if(res.ok) { points += 10; alert("簽到成功！獲得 10 積分"); toggleM(); }
+        else { const d = await res.json(); alert(d.error || "簽到失敗"); }
     }
     
     // 全功能資料更新
@@ -244,22 +253,17 @@
         const name = document.getElementById('n-name').value;
         const bio = document.getElementById('n-bio').value;
         const pass = document.getElementById('n-pass').value;
-
         if(!name) return alert("暱稱不能為空");
 
         const payload = { email: user.email, username: name, bio: bio };
-        if(pass) payload.password = pass; // 如果有填密碼才傳送
+        if(pass) payload.password = pass;
 
-        const res = await fetch(API + "/update-profile", { 
-            method: 'POST', 
-            headers: {'Content-Type':'application/json'}, 
-            body: JSON.stringify(payload) 
+        const res = await fetch(API + "/update-profile", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) 
         });
 
         if(res.ok) { 
             user.username = name;
             user.bio = bio;
-            // 密碼更新後不回傳，前端不需處理
             localStorage.setItem('萌商城_user', JSON.stringify(user)); 
             refreshUser(); 
             alert("資料修改成功！"); 
@@ -267,17 +271,21 @@
         }
     }
     
+    // 刮刮樂 & 紀錄 & 狀態
+    async function playScratch() {
+        if(points<10) return alert("積分不足 (需要 10 點)");
+        const res = await fetch(API + "/scratch-win", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
+        const d = await res.json(); document.getElementById('prize').innerText = d.prizeName; points = d.newTotal;
+    }
     async function loadHistory() {
         const res = await fetch(API + `/orders?email=${user.email}`);
         const d = await res.json();
         document.getElementById('h-list').innerHTML = d.map(o=>`
             <div style="display:flex; gap:15px; margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:10px;">
                 <img src="${o.image_url}" width="50" style="border-radius:8px;">
-                <div><b style="color:var(--p);">$${o.total_price}</b><br><small style="color:#888;">${o.order_date.split('T')[0]}</small></div>
+                <div><b style="color:var(--p);">$${o.total_price}</b><br><small style="color:#888;">${o.order_date.split('T')[0]}</small><br><span style="font-size:12px; color:#aaa;">${o.product_name}</span></div>
             </div>`).join('') || "<p>尚無購買紀錄</p>";
     }
-
-    // 狀態管理
     function refreshUser() {
         document.getElementById('u-email').innerText = user.email;
         document.getElementById('u-name').innerText = user.username;
