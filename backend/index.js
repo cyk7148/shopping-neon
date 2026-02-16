@@ -15,7 +15,7 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// --- 登入 API ---
+// 登入 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -30,35 +30,35 @@ app.post('/api/login', async (req, res) => {
         });
       } else { res.status(401).json({ error: "密碼錯誤" }); }
     } else { res.status(404).json({ error: "帳號不存在" }); }
-  } catch (err) { res.status(500).json({ error: "Server Error" }); }
+  } catch (err) { res.status(500).json({ error: "伺服器錯誤" }); }
 });
 
-// --- 精準修復：更新個人介紹 API ---
+// 更新介紹 API
 app.post('/api/update-bio', async (req, res) => {
   const { email, bio } = req.body;
   try {
     await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
     res.json({ message: "Success" });
-  } catch (err) { res.status(500).json({ error: "Update Failed" }); }
+  } catch (err) { res.status(500).json({ error: "更新失敗" }); }
 });
 
-// --- 精準修復：修改密碼 API ---
+// 修改密碼 API
 app.post('/api/update-password', async (req, res) => {
   const { email, newPassword } = req.body;
   try {
     const hashed = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashed, email]);
     res.json({ message: "Success" });
-  } catch (err) { res.status(500).json({ error: "Password Update Failed" }); }
+  } catch (err) { res.status(500).json({ error: "更新失敗" }); }
 });
 
-// --- 商品列表 API ---
+// 獲取商品 API
 app.get('/api/products', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
     res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: "Load Failed" }); }
+  } catch (err) { res.status(500).json({ error: "載入失敗" }); }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
