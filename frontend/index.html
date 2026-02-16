@@ -3,40 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城 - 蛇王公告版</title>
+    <title>萌商城 - 完美紅金公告版</title>
     <style>
-        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; }
-        body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
+        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --silver: #e0e0e0; }
+        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
+        /* 導覽列與 Logo */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
 
         /* [新增] 蛇王自介公告欄 */
-        .winner-board { background: linear-gradient(135deg, #b71c1c, #d32f2f); border: 2px solid var(--gold); margin: 15px; padding: 15px; border-radius: 15px; color: white; }
-        .winner-board h4 { margin: 0 0 10px 0; color: var(--gold); text-align: center; }
-        .winner-msg { font-size: 14px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--gold); }
+        .winner-board { background: linear-gradient(135deg, #b71c1c, #d32f2f); border: 2px solid var(--gold); margin: 15px; padding: 15px; border-radius: 15px; color: white; box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4); }
+        .winner-board h4 { margin: 0 0 10px 0; color: var(--gold); text-align: center; border-bottom: 1px solid rgba(255,215,0,0.3); padding-bottom: 5px; }
+        .winner-msg { font-size: 14px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--gold); line-height: 1.5; }
+        .winner-msg b { color: var(--gold); display: block; margin-bottom: 2px; }
 
-        .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; }
-        .drawer.active { left: 0; }
-        .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
-        .mask.active { display: block; }
-
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        /* 彈窗樣式恢復 */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 88%; max-width: 360px; position: relative; text-align: center; }
-        .close-btn { position: absolute; right: 15px; top: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; }
-        
-        /* [新增] 強制鎖定模式：隱藏關閉鍵 */
-        .force-mode .close-btn { display: none !important; }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 88%; max-width: 360px; position: relative; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; right: 15px; top: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; }
+        .force-mode .close-btn { display: none !important; } /* 強制鎖定時隱藏 ✕ */
 
-        #modal-scratch .modal-card { background: linear-gradient(135deg, #d32f2f, #b71c1c); border: 4px solid var(--gold); color: white; }
-        #prize { height: 100px; display: flex; align-items: center; justify-content: center; background: #ccc; border-radius: 15px; margin: 20px 0; font-weight: bold; color: #666; }
-        #prize.revealed { background: #fffbe6; color: var(--red); border: 3px solid var(--gold); font-size: 24px; }
-        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-4px, 2px); } 40% { transform: translate(4px, -2px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 2px); } }
+        /* 會員中心列表排版恢復 */
+        .profile-list { text-align: left; background: #f8f9fa; padding: 20px; border-radius: 20px; margin-bottom: 20px; }
+        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; align-items: center; color: #555; }
+        .profile-row span { font-weight: bold; color: #888; min-width: 60px; }
+        .profile-row b { color: #333; max-width: 200px; word-wrap: break-word; text-align: right; }
+
+        /* ---------------- 刮刮樂彩券視覺完全還原 ---------------- */
+        #modal-scratch .modal-card {
+            background: linear-gradient(135deg, #d32f2f, #a50000); border: 4px solid var(--gold);
+            box-shadow: 0 15px 40px rgba(165, 0, 0, 0.4), inset 0 0 20px rgba(255, 215, 0, 0.2);
+            color: var(--gold); overflow: visible;
+        }
+        #modal-scratch .close-btn { color: var(--gold); }
+        /* 金幣堆疊裝飾 */
+        .coins-deco { position: absolute; bottom: -20px; right: -10px; width: 100px; height: 60px; background: radial-gradient(circle, var(--gold) 0%, #ffca28 70%, transparent 100%); filter: drop-shadow(0 0 5px rgba(0,0,0,0.3)); z-index: 5; opacity: 0.8; clip-path: polygon(10% 80%, 30% 60%, 50% 75%, 70% 55%, 90% 85%, 100% 100%, 0% 100%); }
+
+        /* 銀漆漆面恢復 */
+        #prize {
+            height: 125px; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #d0d0d0, #f0f0f0 50%, #c0c0c0); /* 銀漆漸層 */
+            border: 3px solid #a0a0a0; border-radius: 15px; font-size: 22px; font-weight: bold; color: #666;
+            margin: 20px 0; box-shadow: inset 0 3px 6px rgba(0,0,0,0.15); position: relative; z-index: 2;
+        }
+        #prize.revealed { background: #fffbe6; color: #c62828; border: 3px dashed var(--gold); font-size: 26px; animation: pop-in 0.4s ease-out; }
+        @keyframes pop-in { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
         .scratching { animation: shake 0.1s infinite; }
+        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
 
-        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        /* 立體金色金元寶按鈕恢復 */
+        #scratch-btn {
+            background: linear-gradient(to bottom, #ffd700, #ffca28); color: #8f0000; border: 2px solid #e6c300;
+            font-weight: 900; font-size: 18px; padding: 14px; margin-top: 15px;
+            box-shadow: 0 4px 0 #c69000, 0 4px 8px rgba(0,0,0,0.2); transition: 0.1s; position: relative; z-index: 2;
+        }
+        #scratch-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #c69000, 0 2px 4px rgba(0,0,0,0.2); }
+        /* ------------------------------------------------------------------ */
+
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn:disabled { background: #ccc !important; }
         .edit-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         .hidden { display: none !important; }
@@ -51,7 +79,7 @@
 
 <div id="mask" class="mask" onclick="toggleM()"></div>
 
-<div id="menu" class="drawer">
+<div id="menu" class="drawer" style="position:fixed; left:-280px; top:0; width:280px; height:100%; background:white; z-index:2000; transition:0.3s; padding:50px 20px; box-sizing:border-box;">
     <div onclick="openM('scratch')" style="padding:15px; border-bottom:1px solid #eee; color:var(--red); font-weight:bold;">🧧 蛇年刮刮樂</div>
     <div onclick="openM('signin')" style="padding:15px; border-bottom:1px solid #eee;">📅 每日簽到</div>
     <div onclick="showPage('cart')" style="padding:15px; border-bottom:1px solid #eee;">🛒 購物車 (<span id="count">0</span>)</div>
@@ -66,12 +94,12 @@
     </div>
 
     <div id="page-products" class="grid">載入中...</div>
+    
     <div id="page-cart" class="hidden" style="padding:20px;">
-        <h2>🛒 購物車</h2>
-        <div id="c-items"></div>
-        <div style="text-align:right; margin-top:20px; padding:15px; background:white; border-radius:15px;">
+        <h2>🛒 購物車</h2><div id="c-items"></div>
+        <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
             <h3>總計: $<span id="total">0</span></h3>
-            <p style="color:var(--p); font-size:14px;">✨ 1% 回饋：<span id="reward">0</span> 積分</p>
+            <p style="color:var(--p); font-weight:bold;">✨ 結帳可得 1% 回饋：<span id="reward">0</span> 積分</p>
             <button class="btn" onclick="checkout()">確認結帳</button>
         </div>
     </div>
@@ -81,38 +109,55 @@
 <div id="modal-user" class="modal"><div class="modal-card" id="user-card">
     <button class="close-btn" onclick="closeAll()">✕</button>
     <h3 id="user-title">會員中心</h3>
-    <div id="edit-box" style="text-align:left;">
-        <p id="force-msg" class="hidden" style="color:var(--red); font-weight:bold; text-align:center;">🎉 歡迎！請先設定暱稱與介紹才能進入</p>
-        <input id="n-name" class="edit-input" placeholder="新暱稱 (至少2字)"><textarea id="n-bio" class="edit-input" placeholder="個人介紹 (會出現在公告欄喔！)" style="height:60px;"></textarea><input id="n-pass" type="password" class="edit-input" placeholder="新密碼 (留空不改)"><button onclick="updateProfile()" class="btn">儲存並開始購物</button>
+    <div id="profile-view" class="profile-list">
+        <div class="profile-row"><span>帳號</span><b id="u-email"></b></div>
+        <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
+        <div class="profile-row"><span>介紹</span><b id="u-bio"></b></div>
+        <div class="profile-row"><span>密碼</span><b>********</b></div>
+        <div class="profile-row"><span>積分</span><div style="display:flex; align-items:center; gap:8px;"><b id="u-points" style="color:orange;">0</b> <button onclick="syncUserData(true)" style="border:none; background:none;">🔄</button></div></div>
+    </div>
+    <button class="btn" id="edit-trigger" onclick="toggleEditBox()" style="background:#eee; color:#333;">編輯資料</button>
+    <div id="edit-box" class="hidden" style="text-align:left; margin-top:15px;">
+        <p id="force-msg" class="hidden" style="color:var(--red); font-weight:bold; text-align:center;">🎉 請先設定獨特暱稱與自介才能進入商城</p>
+        <input id="n-name" class="edit-input" placeholder="設定暱稱 (至少2字)"><textarea id="n-bio" class="edit-input" placeholder="設定個人介紹 (至少2字)" style="height:60px;"></textarea><input id="n-pass" type="password" class="edit-input" placeholder="新密碼 (不改留空)"><button onclick="updateProfile()" class="btn">確認並儲存修改</button>
     </div>
 </div></div>
 
-<div id="modal-scratch" class="modal"><div class="modal-card"><button class="close-btn" onclick="closeAll()">✕</button><h2>🎉 幸運刮刮卷 🎉</h2><div id="prize">✨ 點擊開刮 ✨</div><button id="scratch-btn" onclick="playScratch()" class="btn" style="background:var(--gold); color:#800;">👉 消耗 1 積分開刮!</button></div></div>
+<div id="modal-scratch" class="modal"><div class="modal-card">
+    <button class="close-btn" onclick="closeAll()">✕</button>
+    <h2>🎉 幸運刮刮卷 🎉</h2>
+    <div id="prize">✨ 點擊開刮 ✨</div>
+    <button id="scratch-btn" onclick="playScratch()">👉 消耗 1 積分開刮!</button>
+    <div class="coins-deco"></div>
+</div></div>
+
+<audio id="s-scratch" src="https://assets.mixkit.co/sfx/preview/mixkit-scratching-a-surface-2987.mp3"></audio>
+<audio id="s-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+<audio id="s-lose" src="https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3"></audio>
 
 <script>
     const API = "/api"; let products = [], cart = [], user = null, points = 0;
     
-    function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
-    function closeAll() { if(user && !user.is_profile_updated) return; document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-    function openM(id) { if(!user && id!=='signin') return alert("請先登入"); toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); }
+    function toggleM() { document.getElementById('menu').style.left = document.getElementById('menu').style.left === '0px' ? '-280px' : '0px'; document.getElementById('mask').classList.toggle('active'); }
+    function closeAll() { if(user && !user.is_profile_updated) return alert("請先完成初始化！"); document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+    function openM(id) { if(!user && id!=='signin') return alert("請先登入"); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); if(id==='scratch'){ document.getElementById('prize').className=""; document.getElementById('prize').innerText="✨ 點擊開刮 ✨"; } }
     function showPage(p) { if(user && !user.is_profile_updated) { openM('user'); return; } document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); }
 
-    // 強制修改與同步邏輯
+    // [營運核心] 強制修改標記與同步
     async function syncUserData(show) {
         if(!user) return;
         const res = await fetch(API + "/get-user", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) });
         if(res.ok) { 
-            user = await res.json(); points = user.points;
-            localStorage.setItem('萌商城_user', JSON.stringify(user)); 
+            user = await res.json(); points = user.points; localStorage.setItem('萌商城_user', JSON.stringify(user)); 
+            refreshUser();
             if(!user.is_profile_updated) {
                 document.getElementById('modal-user').classList.add('active');
                 document.getElementById('user-card').classList.add('force-mode');
                 document.getElementById('force-msg').classList.remove('hidden');
-                document.getElementById('user-title').innerText = "✨ 初始化帳號";
-            } else {
-                document.getElementById('user-card').classList.remove('force-mode');
-                document.getElementById('force-msg').classList.add('hidden');
-                document.getElementById('user-title').innerText = "會員中心";
+                document.getElementById('profile-view').classList.add('hidden');
+                document.getElementById('edit-trigger').classList.add('hidden');
+                document.getElementById('edit-box').classList.remove('hidden');
+                document.getElementById('user-title').innerText = "✨ 初始化您的帳號";
             }
         }
     }
@@ -122,46 +167,38 @@
         const winners = await res.json();
         if(winners.length > 0) {
             document.getElementById('winner-announcement').classList.remove('hidden');
-            document.getElementById('winner-list').innerHTML = winners.map(w => `<div class="winner-msg"><b>🐍 ${w.username}：</b><span>"${w.bio}"</span></div>`).join('');
+            document.getElementById('winner-list').innerHTML = winners.map(w => `<div class="winner-msg"><b>🐍 ${w.username} 得主說：</b><span>"${w.bio}"</span></div>`).join('');
         }
+    }
+
+    async function playScratch() {
+        if(points < 1) return alert("積分不足！");
+        const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'), s_s = document.getElementById('s-scratch');
+        btn.disabled = true; box.innerText = "開刮中..."; box.classList.add('scratching');
+        s_s.currentTime = 0; s_s.play();
+        const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2200)) ]);
+        s_s.pause(); box.classList.remove('scratching');
+        if(res.ok) { 
+            const d = await res.json(); box.innerText = d.prizeName; box.className = "revealed"; points = d.newTotal; user.points = points; refreshUser();
+            if(d.prizeName.includes("銘謝")) document.getElementById('s-lose').play(); else document.getElementById('s-win').play();
+            if(d.newTotal >= 880000) loadWinners();
+        }
+        btn.disabled = false;
     }
 
     async function updateProfile() {
         const n = document.getElementById('n-name').value, b = document.getElementById('n-bio').value;
         if(n.length < 2 || b.length < 2) return alert("暱稱與介紹至少 2 個字！");
         const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:n, bio:b, password:document.getElementById('n-pass').value}) });
-        if(res.ok) { alert("設定成功！"); user.is_profile_updated = true; document.getElementById('modal-user').classList.remove('active'); syncUserData(false); loadWinners(); }
+        if(res.ok) { alert("設定成功！開啟蛇年好運！"); location.reload(); }
     }
 
-    async function playScratch() {
-        if(points < 1) return alert("❌ 積分不足！");
-        const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
-        btn.disabled = true; box.innerText = "刮開中..."; box.classList.add('scratching');
-        const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2200)) ]);
-        box.classList.remove('scratching'); btn.disabled = false;
-        if(res.ok) { 
-            const d = await res.json(); box.innerText = d.prizeName; box.className = "revealed"; points = d.newTotal; user.points = points; 
-            localStorage.setItem('萌商城_user', JSON.stringify(user)); 
-            if(d.newTotal >= 880000) loadWinners();
-        }
-    }
-
-    async function login() {
-        const res = await fetch(API + "/login", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:document.getElementById('l-email').value, password:document.getElementById('l-pass').value}) });
-        if(res.ok) { user = await res.json(); localStorage.setItem('萌商城_user', JSON.stringify(user)); showPage('products'); syncUserData(false); } else alert("登入失敗");
-    }
-
-    function renderCart() {
-        const t = cart.reduce((s,i)=>s+(i.price*i.qty),0); document.getElementById('total').innerText = t; document.getElementById('reward').innerText = Math.floor(t*0.01);
-        document.getElementById('c-items').innerHTML = cart.map((i,idx)=>`<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:white; padding:10px; border-radius:10px;"><img src="${i.image_url}" width="50" height="50" style="border-radius:5px;"><div style="flex:1;"><b>${i.name}</b><br>$${i.price}</div></div>`).join('') || "<p>購物車空空的</p>";
-    }
-    
-    async function load() { 
-        products = await (await fetch(API + "/products")).json(); 
-        document.getElementById('page-products').innerHTML = products.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px;" onclick="add(${p.id})"><img src="${p.image_url}" style="width:100%; height:180px; object-fit:cover; border-radius:15px;"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>`).join('');
-        loadWinners();
-    }
+    function refreshUser() { if(!user) return; document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio; document.getElementById('u-points').innerText = points; document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
+    async function login() { const res = await fetch(API + "/login", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:document.getElementById('l-email').value, password:document.getElementById('l-pass').value}) }); if(res.ok) { user = await res.json(); localStorage.setItem('萌商城_user', JSON.stringify(user)); showPage('products'); syncUserData(false); } else alert("登入失敗"); }
+    function renderCart() { const t = cart.reduce((s,i)=>s+(i.price*i.qty),0); document.getElementById('total').innerText = t; document.getElementById('reward').innerText = Math.floor(t*0.01); document.getElementById('c-items').innerHTML = cart.map((i,idx)=>`<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:white; padding:10px; border-radius:10px;"><img src="${i.image_url}" width="50" height="50" style="border-radius:5px;"><div style="flex:1;"><b>${i.name}</b><br>$${i.price}</div></div>`).join('') || "<p>購物車空空的</p>"; }
+    async function load() { products = await (await fetch(API + "/products")).json(); document.getElementById('page-products').innerHTML = products.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px;" onclick="add(${p.id})"><img src="${p.image_url}" style="width:100%; height:180px; object-fit:cover; border-radius:15px;"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>`).join(''); loadWinners(); }
     function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); alert("已加入購物車"); }
+    function toggleEditBox() { document.getElementById('edit-box').classList.toggle('hidden'); document.getElementById('profile-view').classList.toggle('hidden'); }
     function logout() { user=null; localStorage.removeItem('萌商城_user'); location.reload(); }
     window.onload = () => { const s = localStorage.getItem('萌商城_user'); if(s) { user = JSON.parse(s); syncUserData(false); } else showPage('login'); load(); };
 </script>
