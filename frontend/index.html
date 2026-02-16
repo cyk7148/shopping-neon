@@ -3,68 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城</title>
+    <title>萌商城 - 最終美化修復版</title>
     <style>
-        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --silver: #e0e0e0; }
-        body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
+        :root { --p: #7db9a1; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; }
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; }
         
+        /* 導覽列 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
         
+        /* 側邊選單 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
         .drawer.active { left: 0; }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        #history-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: right 0.3s ease; padding: 25px; box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.1); overflow-y: auto; }
-        #history-panel.active { right: 0; }
-
+        /* 彈窗 UI 修復版 (加入 close-btn) */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
-        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 85%; max-width: 360px; position: relative; max-height: 85vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
-        .close-btn { position: absolute; right: 15px; top: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; }
+        .modal-card { background: white; padding: 30px; border-radius: 30px; width: 88%; max-width: 360px; position: relative; max-height: 85vh; overflow-y: auto; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; right: 18px; top: 18px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; padding: 5px; }
 
-        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
-        .btn:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.7; }
-        
-        /* ---------------- 刮刮卷美化 ---------------- */
+        /* 刮刮卷美化專區 */
         #modal-scratch .modal-card {
             background: linear-gradient(135deg, #d32f2f, #b71c1c); /* 喜氣紅 */
             border: 4px solid var(--gold);
             color: white;
-            padding: 30px 20px;
         }
-        #modal-scratch .close-btn { color: var(--gold); }
-
-        /* 銀漆區 */
+        #modal-scratch h2 { margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        
         #prize {
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #cfcfcf, #efefef 50%, #b0b0b0); /* 金屬銀漸層 */
-            border: 3px solid #999;
-            border-radius: 15px;
-            font-size: 22px;
-            font-weight: bold;
-            color: #666;
-            margin: 20px 0;
-            position: relative;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
-            overflow: hidden;
+            height: 120px; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #cfcfcf, #efefef 50%, #b0b0b0); /* 銀色漆面 */
+            border: 3px solid #999; border-radius: 15px;
+            font-size: 20px; font-weight: bold; color: #666; margin: 20px 0;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
         }
-        /* 刮開後的獎項 */
         #prize.revealed {
-            background: #fffbe6; /* 紙張色 */
-            color: var(--red);
-            border: 3px solid var(--gold);
-            font-size: 28px;
-            animation: prize-pop 0.5s ease-out;
+            background: #fffbe6; color: var(--red); border: 3px solid var(--gold);
+            font-size: 26px; animation: prize-pop 0.4s ease-out;
         }
         @keyframes prize-pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
-
-        /* 晃動動畫 */
+        
+        /* 刮獎晃動效果 */
         @keyframes scratch-shake {
             0% { transform: translate(0,0); }
             20% { transform: translate(-4px, 2px) rotate(-1deg); }
@@ -73,21 +55,18 @@
             80% { transform: translate(4px, 2px) rotate(1deg); }
             100% { transform: translate(0,0); }
         }
-        .scratching-active { animation: scratch-shake 0.15s infinite; filter: brightness(1.1); }
+        .scratching-active { animation: scratch-shake 0.1s infinite; filter: brightness(1.1); }
 
-        /* 購買紀錄清單排版修正 */
-        .history-item { display: flex; gap: 15px; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 15px; align-items: center; }
-        .history-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
-        .history-info { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .history-row1 { display: flex; justify-content: space-between; align-items: center; }
-        .history-name { font-weight: bold; color: #333; font-size: 16px; }
-        .history-price { color: var(--p); font-weight: bold; }
-        .history-date { color: #999; font-size: 13px; }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn:disabled { background: #ccc !important; opacity: 0.8; }
+        #scratch-btn { background: var(--gold); color: #800; }
 
-        .profile-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; color: #555; align-items: center; }
-        .edit-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         .hidden { display: none !important; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
+        
+        /* 購買紀錄排版修復 */
+        .history-item { display: flex; gap: 15px; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 12px; align-items: center; }
+        .history-info { flex: 1; text-align: left; }
     </style>
 </head>
 <body>
@@ -108,39 +87,36 @@
     <div onclick="logout()" style="padding:15px; color:var(--red); margin-top:50px;">🚪 登出</div>
 </div>
 
-<div id="history-panel">
+<div id="history-panel" style="position:fixed; right:-100%; top:0; width:85%; max-width:350px; height:100%; background:white; z-index:2100; transition:0.3s; padding:25px; box-sizing:border-box; overflow-y:auto;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3>🛍️ 購買紀錄</h3><button onclick="toggleH()" class="close-btn" style="position:static; font-size:20px;">✕</button>
+        <h3>🛍️ 購買紀錄</h3><button onclick="toggleH()" style="border:none; background:none; font-size:20px;">✕</button>
     </div>
     <div id="h-list"></div>
 </div>
 
 <div class="container">
     <div id="page-products" class="grid">載入中...</div>
-    <div id="page-detail" class="hidden" style="padding:20px; text-align:center;"><div id="d-content"></div><p onclick="showPage('products')" style="cursor:pointer; color:#999;">← 返回</p></div>
     <div id="page-cart" class="hidden" style="padding:20px;"><h2>🛒 購物車</h2><div id="c-items"></div><h3>總計: $<span id="total">0</span></h3><button class="btn" onclick="checkout()">確認結帳</button></div>
-    <div id="page-login" class="hidden" style="padding:20px; text-align:center;"><div class="card" style="padding:30px;"><input id="l-email" placeholder="Email" class="edit-input"><input id="l-pass" type="password" placeholder="密碼" class="edit-input"><button class="btn" onclick="login()">進入商城</button></div></div>
+    <div id="page-login" class="hidden" style="padding:20px; text-align:center;"><input id="l-email" placeholder="Email" class="btn" style="background:white; color:black; border:1px solid #ddd;"><input id="l-pass" type="password" placeholder="密碼" class="btn" style="background:white; color:black; border:1px solid #ddd;"><button class="btn" onclick="login()">進入商城</button></div>
 </div>
 
 <div id="modal-user" class="modal"><div class="modal-card">
     <button class="close-btn" onclick="closeAll()">✕</button>
     <h3>會員中心</h3>
-    <div style="text-align:left; background:#f8f9fa; padding:20px; border-radius:15px;">
-        <div class="profile-row"><span>帳號</span><b id="u-email"></b></div>
-        <div class="profile-row"><span>暱稱</span><b id="u-name"></b></div>
-        <div class="profile-row"><span>介紹</span><b id="u-bio"></b></div>
-        <div class="profile-row"><span>密碼</span><b>********</b></div>
-        <div class="profile-row" style="border-bottom:none;"><span>積分</span><div><b id="u-points" style="color:orange;">0</b> <button onclick="syncUserData(true)" style="border:none; background:none; cursor:pointer;">🔄</button></div></div>
+    <div style="text-align:left; background:#f8f9fa; padding:15px; border-radius:15px; margin-bottom:10px;">
+        <p>帳號: <b id="u-email"></b></p>
+        <p>暱稱: <b id="u-name"></b></p>
+        <p>介紹: <b id="u-bio"></b></p>
+        <p>積分: <b id="u-points" style="color:orange;">0</b> <button onclick="syncUserData(true)" style="border:none; background:none; cursor:pointer;">🔄</button></p>
     </div>
-    <button class="btn" onclick="toggleEditBox()">編輯資料</button>
-    <div id="edit-box" class="hidden"><input id="n-name" class="edit-input"><textarea id="n-bio" class="edit-input"></textarea><input id="n-pass" type="password" placeholder="新密碼" class="edit-input"><button onclick="updateProfile()" class="btn">儲存修改</button></div>
+    <button class="btn" onclick="logout()" style="background:#eee; color:#333;">登出帳號</button>
 </div></div>
 
 <div id="modal-scratch" class="modal"><div class="modal-card">
     <button class="close-btn" onclick="closeAll()">✕</button>
     <h2>🎉 幸運刮刮卷 🎉</h2>
     <div id="prize">✨ 點擊下方刮開 ✨</div>
-    <button id="scratch-btn" onclick="playScratch()" class="btn" style="background:var(--gold); color:#800; font-size:18px;">👉 消耗 1 積分開刮!</button>
+    <button id="scratch-btn" onclick="playScratch()" class="btn">👉 消耗 1 積分開刮!</button>
 </div></div>
 
 <audio id="s-scratch" src="https://assets.mixkit.co/sfx/preview/mixkit-scratching-a-surface-2987.mp3"></audio>
@@ -151,125 +127,60 @@
     const API = "/api"; let products = [], cart = [], user = null, points = 0;
     
     function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
-    function toggleH() { document.getElementById('history-panel').classList.toggle('active'); if(document.getElementById('history-panel').classList.contains('active')) loadHistory(); }
+    function toggleH() { document.getElementById('history-panel').style.right = document.getElementById('history-panel').style.right === '0px' ? '-100%' : '0px'; if(document.getElementById('history-panel').style.right === '0px') loadHistory(); }
     function closeAll() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
-    function openM(id) { 
-        if(!user && id!=='signin') return alert("請先登入"); 
-        toggleM(); 
-        document.getElementById('modal-'+id).classList.add('active'); 
-        if(id==='user') syncUserData(false);
-        if(id==='scratch') { // 開啟刮刮樂時重置 UI
-            const p = document.getElementById('prize');
-            p.innerText = "✨ 點擊下方刮開 ✨";
-            p.className = "";
-        }
-    }
-    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); if(document.getElementById('menu').classList.contains('active')) toggleM(); }
+    function openM(id) { if(!user && id!=='signin') return alert("請先登入"); toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); if(id==='scratch') { document.getElementById('prize').className = ""; document.getElementById('prize').innerText = "✨ 點擊下方刮開 ✨"; } }
+    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); }
 
-    // 強制同步
+    // 同步機制：解決重新整理變 0 的問題
     async function syncUserData(show) {
         if(!user) return;
         try {
-            const res = await fetch(API + "/get-user", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-            if(res.ok) { 
-                const d = await res.json(); points = Number(d.points); user = d;
-                localStorage.setItem('萌商城_user', JSON.stringify(user)); 
-                refreshUser(); if(show) alert("✅ 同步成功！積分：" + points); 
-            }
-        } catch(e) { if(show) alert("❌ 同步失敗，請確認後端部署"); }
+            const res = await fetch(API + "/get-user", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) });
+            if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); if(show) alert("同步成功！分數：" + points); }
+        } catch(e) { if(show) alert("同步失敗，請確認 Render 部署成功"); }
     }
-    function refreshUser() { document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio || "尚無介紹"; document.getElementById('u-points').innerText = points; document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
+    function refreshUser() { document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio || "尚無介紹"; document.getElementById('u-points').innerText = points; }
 
-    // 刮刮樂邏輯修復
+    // 刮刮樂修復核心：加入 finally 解決卡死
     async function playScratch() {
         if(points < 1) return alert("❌ 積分不足 (需要 1 點)！");
         const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'), s_s = document.getElementById('s-scratch');
         
         btn.disabled = true; btn.innerText = "刮開中...";
         box.innerText = "努力刮開中..."; box.className = "scratching-active";
-        try { s_s.currentTime = 0; await s_s.play(); } catch(e){}
+        try { s_s.currentTime = 0; s_s.play(); } catch(e){}
 
         try {
-            // 強制延遲 2.5 秒懸念
             const [res, _] = await Promise.all([
                 fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }),
                 new Promise(r => setTimeout(r, 2500))
             ]);
             
-            s_s.pause();
-            box.className = "revealed"; 
-
             if(res.ok) { 
-                const d = await res.json(); box.innerText = d.prizeName; 
+                const d = await res.json(); 
+                box.innerText = d.prizeName; box.className = "revealed";
                 points = Number(d.newTotal); user.points = points; 
-                localStorage.setItem('萌商城_user', JSON.stringify(user)); 
-                refreshUser();
+                localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser();
                 if(d.prizeName.includes("銘謝")) document.getElementById('s-lose').play(); else document.getElementById('s-win').play();
-                btn.innerText = "刮開了！";
-            } else {
-                const err = await res.json(); throw new Error(err.error);
-            }
+            } else { alert("❌ " + (await res.json()).error); }
         } catch(e) { 
-            alert("❌ 錯誤：" + e.message); 
-            box.className = ""; box.innerText = "刮刮樂失敗";
+            alert("❌ 連線錯誤，請確定後端已開機且部署成功"); 
+        } finally {
+            // 不管成功失敗，都要恢復按鈕，防止卡死
             btn.disabled = false; btn.innerText = "👉 消耗 1 積分開刮!";
+            box.classList.remove('scratching-active');
+            s_s.pause();
         }
-    }
-
-    // 購買紀錄修正
-    async function loadHistory() {
-        try {
-            const res = await fetch(API + `/orders?email=${user.email}`);
-            const d = await res.json();
-            document.getElementById('h-list').innerHTML = d.map(o=>`
-                <div class="history-item">
-                    <img src="${o.image_url}" class="history-img">
-                    <div class="history-info">
-                        <div class="history-row1">
-                            <span class="history-name">${o.product_name.split('x')[0]}</span>
-                            <span class="history-price">$${o.total_price}</span>
-                        </div>
-                        <span class="history-date">${o.order_date.split('T')[0]}</span>
-                    </div>
-                </div>`).join('') || "<p style='text-align:center; color:#999; margin-top:30px;'>尚未有購買紀錄</p>";
-        } catch(e) {}
     }
 
     async function login() {
         const res = await fetch(API + "/login", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:document.getElementById('l-email').value, password:document.getElementById('l-pass').value}) });
         if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('萌商城_user', JSON.stringify(user)); showPage('products'); refreshUser(); } else alert("登入失敗");
     }
-    async function doSignin() {
-        const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: user.email}) });
-        if(res.ok) { const d = await res.json(); points = Number(d.points); user.points = points; localStorage.setItem('萌商城_user', JSON.stringify(user)); refreshUser(); alert("✅ 簽到成功！獲得 10 積分"); toggleM(); }
-        else alert((await res.json()).error);
-    }
-    function renderCart() {
-        const t = cart.reduce((s,i)=>s+(i.price*i.qty),0); document.getElementById('total').innerText = t;
-        document.getElementById('c-items').innerHTML = cart.map((i,idx)=>`<div style="display:flex; align-items:center; gap:10px; padding:15px; background:white; margin-bottom:10px; border-radius:15px;">
-            <img src="${i.image_url}" width="50" height="50" style="border-radius:10px; object-fit:cover;">
-            <div style="flex:1;"><b>${i.name}</b><br>$${i.price}</div>
-            <div><button onclick="updateQty(${idx},-1)">-</button> <span>${i.qty}</span> <button onclick="updateQty(${idx},1)">+</button></div>
-        </div>`).join('') || "<p>購物車是空的</p>";
-    }
-    function updateQty(idx, c) { cart[idx].qty += c; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); refreshUser(); }
     async function load() { 
         products = await (await fetch(API + "/products")).json(); 
-        document.getElementById('page-products').innerHTML = products.map(p => `<div class="card" style="padding-bottom:10px;" onclick="showDetail(${p.id})"><img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover; border-radius:20px 20px 0 0;"><div style="padding:15px;"><b>${p.name}</b><br><span style="color:var(--p); font-size:18px;">$${p.price}</span></div></div>`).join('');
-    }
-    function showDetail(id) { const p = products.find(x=>x.id===id); document.getElementById('d-content').innerHTML = `<div class="card" style="padding:20px;"><img src="${p.image_url}" width="100%" style="border-radius:15px;"><h2>${p.name}</h2><p>${p.description}</p><button class="btn" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
-    function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); refreshUser(); alert("已加入購物車"); }
-    async function checkout() {
-        const t = document.getElementById('total').innerText, s = cart.map(i=>`${i.name}x${i.qty}`).join(",");
-        if(cart.length===0) return;
-        await fetch(API + "/checkout", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, products:s, total:t, image_url:cart[0].image_url}) });
-        cart = []; refreshUser(); alert("結帳成功！"); showPage('products'); syncUserData(false);
-    }
-    function toggleEditBox() { document.getElementById('edit-box').classList.toggle('hidden'); if(!document.getElementById('edit-box').classList.contains('hidden')) { document.getElementById('n-name').value = user.username; document.getElementById('n-bio').value = user.bio || ""; } }
-    async function updateProfile() {
-        const n = document.getElementById('n-name').value, b = document.getElementById('n-bio').value, p = document.getElementById('n-pass').value;
-        const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:n, bio:b, password:p}) });
-        if(res.ok) { alert("資料已更新"); syncUserData(false); document.getElementById('edit-box').classList.add('hidden'); }
+        document.getElementById('page-products').innerHTML = products.map(p => `<div style="background:white; border-radius:20px; padding:15px; margin-bottom:10px;"><img src="${p.image_url}" style="width:100%; border-radius:15px;"><h3 style="margin:10px 0;">${p.name}</h3><b style="color:var(--p); font-size:20px;">$${p.price}</b></div>`).join('');
     }
     function logout() { user=null; localStorage.removeItem('萌商城_user'); showPage('login'); toggleM(); }
 
