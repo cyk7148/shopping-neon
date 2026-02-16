@@ -8,137 +8,181 @@
         :root { --primary: #67b18a; --warning: #f39c12; --bg: #fdfdfd; }
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; }
         header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top:0; z-index:100; }
-        .logo { font-size: 24px; font-weight: bold; cursor: pointer; }
+        .logo { font-size: 24px; font-weight: bold; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .nav-right { display: flex; align-items: center; gap: 15px; }
-        .btn-cart-header { background: var(--warning); color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; }
-        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
-        .hidden { display: none; }
         
-        /* 商品方格 */
+        /* 使用者名稱按鈕 */
+        .user-name-btn { color: var(--primary); font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
+        .user-name-btn:hover { background: #f0f0f0; text-decoration: underline; }
+
+        /* 個人資料彈窗樣式 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: white; padding: 25px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .bio-box { color: #666; font-size: 14px; margin: 15px 0; background: #f9f9f9; padding: 15px; border-radius: 10px; text-align: left; min-height: 50px; }
+        
+        /* 容器與方格 */
+        .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
+        .hidden { display: none !important; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .product-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; cursor: pointer; transition: 0.3s; }
-        .product-card:hover { transform: translateY(-5px); }
         .product-card img { width: 100%; height: 200px; object-fit: cover; }
         
-        /* 商品詳情頁樣式 */
-        .detail-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 20px; }
-        .detail-img { width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; background: #f9f9f9; }
-        .detail-info h2 { font-size: 28px; margin: 0; }
-        .detail-price { color: #e74c3c; font-size: 24px; font-weight: bold; margin: 10px 0; }
-        .detail-desc { color: #555; line-height: 1.6; font-size: 16px; border-top: 1px solid #eee; pt: 15px; }
-        
-        /* 按鈕樣式 */
-        .submit-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
-        .back-link { text-align: center; margin-top: 20px; color: #888; cursor: pointer; }
-        
-        /* 購物車與註冊登入 (維持之前的樣式) */
-        .cart-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; gap: 15px; }
-        .item-img-small { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+        /* 商品詳情樣式 */
+        .detail-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .detail-img { width: 100%; max-height: 400px; object-fit: contain; background: #f9f9f9; border-radius: 10px; }
+
+        /* 按鈕 */
+        .btn-cart-header { background: var(--warning); color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        .submit-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; }
+        .btn-logout { background: #fee; color: #e74c3c; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo" onclick="showPage('products')">萌商城</div>
+    <div class="logo" onclick="showPage('products')">✨ 萌商城</div>
     <div class="nav-right">
         <button class="btn-cart-header" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
-        <span id="user-display" class="hidden"></span>
-        <button id="login-nav-btn" onclick="showPage('login')">登入</button>
+        <span id="user-display" class="user-name-btn hidden" onclick="toggleUserModal()"></span>
+        <button id="login-nav-btn" class="user-name-btn" onclick="showPage('login')">登入</button>
     </div>
 </header>
 
+<div id="user-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h2 id="modal-title">會員資料</h2>
+        <div id="bio-view-mode">
+            <div class="bio-box" id="display-bio">載入中...</div>
+            <button onclick="setEditMode(true)" style="border:1px solid #ddd; padding:5px; border-radius:5px; cursor:pointer;">✎ 編輯自我介紹</button>
+        </div>
+        <div id="bio-edit-mode" class="hidden">
+            <textarea id="edit-bio-input" style="width:100%; height:80px; margin-bottom:10px; padding:10px; border-radius:5px;"></textarea>
+            <button class="submit-btn" onclick="saveBio()">儲存變更</button>
+            <button onclick="setEditMode(false)" style="margin-top:10px; background:none; border:none; color:#888; cursor:pointer;">取消</button>
+        </div>
+        <button class="btn-logout" onclick="location.reload()">登出帳號</button>
+        <button onclick="toggleUserModal()" style="width:100%; margin-top:10px; border:none; background:none; color:#999; cursor:pointer;">關閉</button>
+    </div>
+</div>
+
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center;">🛒 精選商品</h2>
+        <h2 style="text-align:center;">🍬 萌萌嚴選商品</h2>
         <div class="product-grid" id="product-list">載入中...</div>
     </div>
 
     <div id="page-detail" class="hidden">
-        <div class="detail-card" id="detail-content">
-            </div>
-        <div class="back-link" onclick="showPage('products')">← 回商品列表</div>
+        <div id="detail-content" class="detail-card"></div>
+        <p style="text-align:center; margin-top:20px; cursor:pointer; color:#888;" onclick="showPage('products')">← 回到列表</p>
     </div>
 
     <div id="page-cart" class="hidden">
-        <h2>🛒 購物車清單</h2>
-        <div id="cart-items-container" style="background:white; padding:20px; border-radius:10px;"></div>
-        <button class="submit-btn" style="margin-top:20px;" onclick="alert('結帳成功！')">立即結帳</button>
+        <h2 style="text-align:center;">🛒 我的購物車</h2>
+        <div id="cart-items-container" style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);"></div>
+        <button class="submit-btn" style="margin-top:20px;" onclick="checkout()">立即結帳</button>
     </div>
 
     <div id="page-login" class="hidden">
-        <div style="background:white; padding:30px; border-radius:10px; text-align:center;">
+        <div style="background:white; padding:30px; border-radius:15px; max-width:400px; margin:0 auto; text-align:center;">
             <h2>會員登入</h2>
-            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="password" id="login-password" placeholder="密碼" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="submit-btn" onclick="apiLogin()">登入</button>
+            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+            <input type="password" id="login-password" placeholder="密碼" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
+            <button class="submit-btn" onclick="apiLogin()">進入萌商城</button>
         </div>
     </div>
 </div>
 
 <script>
     const API_URL = "/api"; 
-    let allProducts = []; // 暫存所有商品資料
+    let currentUser = null;
+    let allProducts = [];
     let cart = [];
 
     function showPage(p) {
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('page-' + p).classList.remove('hidden');
-        if(p === 'cart') renderCart();
+        if (p === 'cart') renderCart();
     }
 
     async function loadProducts() {
         const res = await fetch(`${API_URL}/products`);
         allProducts = await res.json();
-        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
-        
         document.getElementById('product-list').innerHTML = allProducts.map(p => `
             <div class="product-card" onclick="showDetail(${p.id})">
                 <img src="${p.image_url}">
                 <h3>${p.name}</h3>
                 <p style="color:#e74c3c; font-weight:bold;">NT$ ${p.price}</p>
-                <p style="font-size:12px; color:#999;">點擊查看詳情</p>
+                <p style="font-size:12px; color:#999;">查看詳情</p>
             </div>`).join('');
     }
 
-    // 點開詳情頁的函式
     function showDetail(id) {
-        const p = allProducts.find(item => item.id === id);
+        const p = allProducts.find(i => i.id === id);
         const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
-        
         document.getElementById('detail-content').innerHTML = `
             <img src="${p.image_url}" class="detail-img">
-            <div class="detail-info">
-                <h2>${p.name}</h2>
-                <p class="detail-price">價格：NT$ ${p.price}</p>
-                <div class="detail-desc">
-                    <p><strong>商品介紹：</strong></p>
-                    <p>${p.description || "目前尚無詳細介紹。"}</p>
-                </div>
-                <button class="submit-btn" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
-                    ${isLoggedIn ? "加入購物車" : "請先登入後再購買"}
-                </button>
+            <h1>${p.name}</h1>
+            <p style="color:#e74c3c; font-size:24px; font-weight:bold;">NT$ ${p.price}</p>
+            <div style="border-top:1px solid #eee; padding-top:15px; color:#555;">
+                <strong>商品描述：</strong><p>${p.description || "萌萌的商品，等你帶回家！"}</p>
             </div>
+            <button class="submit-btn" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price})">
+                ${isLoggedIn ? "🛒 加入購物車" : "請先登入後再購買"}
+            </button>
         `;
         showPage('detail');
     }
 
-    function addToCart(name, price, img) {
-        if (document.getElementById('user-display').classList.contains('hidden')) { alert("請先登入！"); showPage('login'); return; }
-        cart.push({ name, price, img, qty: 1 });
+    function toggleUserModal() {
+        const modal = document.getElementById('user-modal');
+        modal.classList.toggle('hidden');
+        if (!modal.classList.contains('hidden')) {
+            setEditMode(false);
+            document.getElementById('modal-title').innerText = currentUser.username + " 的萌空間";
+            document.getElementById('display-bio').innerText = currentUser.bio;
+        }
+    }
+
+    function setEditMode(isEdit) {
+        document.getElementById('bio-view-mode').className = isEdit ? 'hidden' : '';
+        document.getElementById('bio-edit-mode').className = isEdit ? '' : 'hidden';
+        if(isEdit) document.getElementById('edit-bio-input').value = currentUser.bio;
+    }
+
+    async function saveBio() {
+        const newBio = document.getElementById('edit-bio-input').value;
+        const res = await fetch(`${API_URL}/update-bio`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, bio: newBio })
+        });
+        if (res.ok) {
+            currentUser.bio = newBio;
+            document.getElementById('display-bio').innerText = newBio;
+            setEditMode(false);
+            alert("自我介紹更新成功！");
+        }
+    }
+
+    function addToCart(name, price) {
+        if (!currentUser) { alert("請先登入！"); showPage('login'); return; }
+        cart.push({ name, price });
         document.getElementById('cart-count').innerText = cart.length;
         alert("已加入購物車！");
     }
 
     function renderCart() {
         const container = document.getElementById('cart-items-container');
-        if(cart.length === 0) { container.innerHTML = "購物車空空的"; return; }
-        container.innerHTML = cart.map(item => `
-            <div class="cart-item">
-                <img src="${item.img}" class="item-img-small">
-                <div style="flex:1;">${item.name}</div>
-                <div>NT$ ${item.price}</div>
-            </div>`).join('');
+        if (cart.length === 0) { container.innerHTML = "購物車空空的耶 (´･_･`)"; return; }
+        let total = 0;
+        container.innerHTML = cart.map(item => {
+            total += item.price;
+            return `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">
+                        <span>${item.name}</span><span>NT$ ${item.price}</span>
+                    </div>`;
+        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:15px; font-size:18px;">總金額：NT$ ${total}</div>`;
     }
+
+    function checkout() { if(cart.length === 0) return; alert("感謝在萌商城購物！"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
@@ -148,13 +192,13 @@
             body: JSON.stringify({ email, password }) 
         });
         if (res.ok) {
-            const data = await res.json();
-            document.getElementById('user-display').innerText = data.username + "(已登入)";
+            currentUser = await res.json();
+            document.getElementById('user-display').innerText = currentUser.username + "(已登入)";
             document.getElementById('user-display').classList.remove('hidden');
             document.getElementById('login-nav-btn').classList.add('hidden');
             showPage('products');
             loadProducts();
-        } else { alert("登入失敗"); }
+        } else { alert("帳號或密碼錯誤"); }
     }
 
     loadProducts();
