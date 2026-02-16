@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Render 連接 Neon 必須開啟 SSL
+// Render 連接 Neon 必須開啟 SSL 設定
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -16,38 +16,55 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 同步資料 API
+// 1. [新增] 獲取 88 萬大獎得主公告名單 (暱稱 + 自介)
+app.get('/api/winners', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT username, bio FROM users WHERE points >= 880000 ORDER BY points DESC'
+    );
+    res.json(result.rows);
+  } catch (err) { res.status(500).send(); }
+});
+
+// 2. 同步資料與登入 (支援強制修改標記)
 app.post('/api/get-user', async (req, res) => {
   try {
-    const r = await pool.query('SELECT username, email, bio, points FROM users WHERE email = $1', [req.body.email]);
+    const r = await pool.query('SELECT username, email, bio, points, is_profile_updated FROM users WHERE email = $1', [req.body.email]);
     if (r.rows.length > 0) {
-      const u = r.rows[0];
-      res.json({ username: u.username, email: u.email, bio: u.bio, points: Number(u.points) });
+      res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
     } else res.status(404).send();
   } catch (err) { res.status(500).send(); }
 });
 
-// 登入與註冊 (包含初始招呼語)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const r = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (r.rows.length > 0 && await bcrypt.compare(password, r.rows[0].password)) {
-      const u = r.rows[0];
-      res.json({ username: u.username, email: u.email, bio: u.bio, points: Number(u.points) });
+      res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
     } else if (r.rows.length === 0) {
       const hash = await bcrypt.hash(password, 10);
-      // 註冊時填入：新用戶、我是新用戶，哈囉。
-      const n = await pool.query(
-        'INSERT INTO users (username, email, password, points, bio) VALUES ($1,$2,$3,0,$4) RETURNING *', 
-        ["新用戶", email, hash, "我是新用戶，哈囉。"]
-      );
-      res.json({ username: n.rows[0].username, email: n.rows[0].email, bio: n.rows[0].bio, points: 0 });
+      const n = await pool.query('INSERT INTO users (email, password) VALUES ($1,$2) RETURNING *', [email, hash]);
+      res.json({ ...n.rows[0], points: 0 });
     } else res.status(401).send();
   } catch (err) { res.status(500).send(); }
 });
 
-// 簽到與刮刮樂 (1 點開刮)
+// 3. 修改個人資料 (成功後解除強制鎖定)
+app.post('/api/update-profile', async (req, res) => {
+  const { email, username, bio, password } = req.body;
+  try {
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      await pool.query('UPDATE users SET username=$1, bio=$2, password=$3, is_profile_updated=TRUE WHERE email=$4', [username, bio, hash, email]);
+    } else {
+      await pool.query('UPDATE users SET username=$1, bio=$2, is_profile_updated=TRUE WHERE email=$3', [username, bio, email]);
+    }
+    res.json({ message: "OK" });
+  } catch (err) { res.status(500).send(); }
+});
+
+// 4. 簽到與刮刮樂 (1 點開刮，高精度機率)
 app.post('/api/daily-signin', async (req, res) => {
   try {
     const result = await pool.query(
@@ -75,15 +92,8 @@ app.post('/api/scratch-win', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
+// 5. 產品與結帳 (含 1% 回饋)
 app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
-app.post('/api/update-profile', async (req, res) => {
-    const { email, username, bio, password } = req.body;
-    if (password) {
-        const hash = await bcrypt.hash(password, 10);
-        await pool.query('UPDATE users SET username=$1, bio=$2, password=$3 WHERE email=$4', [username, bio, hash, email]);
-    } else await pool.query('UPDATE users SET username=$1, bio=$2 WHERE email=$3', [username, bio, email]);
-    res.json({ message: "OK" });
-});
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Number(total), image_url]);
