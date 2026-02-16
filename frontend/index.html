@@ -70,7 +70,7 @@
             <input type="password" id="new-password" class="input-field" placeholder="新密碼">
             <button class="btn-submit" onclick="savePassword()">更新密碼</button>
         </div>
-        <button onclick="location.reload()" style="background:none; border:none; color:var(--danger); font-weight:600; margin-top:25px; cursor:pointer;">登出帳號</button>
+        <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-weight:600; margin-top:25px; cursor:pointer;">登出帳號</button>
         <button onclick="toggleUserModal()" style="display:block; width:100%; background:none; border:none; color:#bbb; margin-top:15px; cursor:pointer;">關閉</button>
     </div>
 </div>
@@ -106,24 +106,43 @@
         showPage('detail');
     }
 
-    // 核心修正：儲存邏輯 (增加錯誤處理)
+    // 精準修改：更新 UI 與同步儲存資訊
+    function updateLoginUI(user) {
+        currentUser = user;
+        if (user) {
+            document.getElementById('user-display').innerText = user.username + "(已登入)";
+            document.getElementById('user-display').classList.remove('hidden');
+            document.getElementById('login-nav-btn').classList.add('hidden');
+            localStorage.setItem('萌商城_user', JSON.stringify(user)); // 存入筆記本
+        } else {
+            document.getElementById('user-display').classList.add('hidden');
+            document.getElementById('login-nav-btn').classList.remove('hidden');
+            localStorage.removeItem('萌商城_user'); // 燒掉筆記本
+        }
+    }
+
+    // 頁面載入時檢查是否有筆記本
+    function checkLoginStatus() {
+        const savedUser = localStorage.getItem('萌商城_user');
+        if (savedUser) {
+            updateLoginUI(JSON.parse(savedUser));
+        }
+    }
+
     async function saveBio() {
         const bio = document.getElementById('edit-bio-input').value;
-        if (!currentUser || !currentUser.email) return alert("請重新登入");
-        try {
-            const res = await fetch(`${API_URL}/update-bio`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: currentUser.email, bio: bio })
-            });
-            const result = await res.json();
-            if (res.ok) { 
-                currentUser.bio = bio; 
-                document.getElementById('display-bio').innerText = bio; 
-                setEditMode('none'); 
-                alert("個人介紹儲存成功"); 
-            } else { alert("錯誤: " + result.error); }
-        } catch (e) { alert("連線失敗"); }
+        const res = await fetch(`${API_URL}/update-bio`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, bio: bio })
+        });
+        if (res.ok) { 
+            currentUser.bio = bio; 
+            updateLoginUI(currentUser); // 更新後也要同步存入 localStorage
+            document.getElementById('display-bio').innerText = bio; 
+            setEditMode('none'); 
+            alert("已儲存"); 
+        }
     }
 
     async function savePassword() {
@@ -133,7 +152,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentUser.email, newPassword: pwd })
         });
-        if (res.ok) { setEditMode('none'); alert("密碼修改成功"); }
+        if (res.ok) { setEditMode('none'); alert("密碼已改"); }
     }
 
     function toggleUserModal() {
@@ -142,7 +161,7 @@
         if (!modal.classList.contains('hidden') && currentUser) {
             setEditMode('none');
             document.getElementById('modal-email').innerText = currentUser.email;
-            document.getElementById('display-bio').innerText = currentUser.bio || "目前尚無介紹";
+            document.getElementById('display-bio').innerText = currentUser.bio || "尚無介紹";
         }
     }
 
@@ -176,24 +195,31 @@
                 </div>
                 <div style="width:80px; text-align:right; font-weight:bold; color:var(--danger);">NT$ ${sub}</div>
             </div>`;
-        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:20px; font-size:18px;">總計：NT$ ${total}</div>`;
+        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:20px;">總計：NT$ ${total}</div>`;
     }
 
     function changeQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); renderCart(); }
-    function checkout() { alert("下單成功"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
+    function checkout() { alert("感謝購買"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
+
+    function logout() {
+        updateLoginUI(null);
+        location.reload();
+    }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
         if (res.ok) {
-            currentUser = await res.json();
-            document.getElementById('user-display').innerText = currentUser.username + "(已登入)";
-            document.getElementById('user-display').classList.remove('hidden');
-            document.getElementById('login-nav-btn').classList.add('hidden');
-            showPage('products'); loadProducts();
-        } else { alert("帳號或密碼錯誤"); }
+            const user = await res.json();
+            updateLoginUI(user);
+            showPage('products');
+            loadProducts();
+        } else { alert("登入失敗"); }
     }
+    
+    // 初始化執行
+    checkLoginStatus();
     loadProducts();
 </script>
 </body>
