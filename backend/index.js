@@ -15,6 +15,7 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
+// 登入 API
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -25,26 +26,18 @@ app.post('/api/login', async (req, res) => {
         res.json({ 
           username: user.rows[0].username, 
           email: user.rows[0].email,
-          bio: user.rows[0].bio || "" 
+          bio: user.rows[0].bio || "這是一個神祕的萌商城會員" 
         });
       } else { res.status(401).json({ error: "密碼錯誤" }); }
     } else { res.status(404).json({ error: "帳號不存在" }); }
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/api/update-bio', async (req, res) => {
-  const { email, bio } = req.body;
+// 更新個人資料 API (暱稱與介紹)
+app.post('/api/update-profile', async (req, res) => {
+  const { email, username, bio } = req.body;
   try {
-    await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [bio, email]);
-    res.json({ message: "Success" });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/update-password', async (req, res) => {
-  const { email, newPassword } = req.body;
-  try {
-    const hashed = await bcrypt.hash(newPassword, 10);
-    await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashed, email]);
+    await pool.query('UPDATE users SET username = $1, bio = $2 WHERE email = $3', [username, bio, email]);
     res.json({ message: "Success" });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -57,4 +50,4 @@ app.get('/api/products', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server online`));
+app.listen(PORT, () => console.log(`Server Online`));
