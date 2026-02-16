@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>萌商城</title>
     <style>
-        :root { 
-            --primary: #7db9a1; --accent: #f4b183; --bg: #fdfaf7; 
-            --text: #4a4a4a; --danger: #e67e73; --shadow: 0 8px 24px rgba(0,0,0,0.05); 
-        }
+        :root { --primary: #7db9a1; --accent: #f4b183; --bg: #fdfaf7; --text: #4a4a4a; --danger: #e67e73; --shadow: 0 8px 24px rgba(0,0,0,0.05); }
         body { font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); margin: 0; }
         header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; height: 60px; box-sizing: border-box; }
         .logo { font-size: 24px; font-weight: 800; color: var(--primary); cursor: pointer; }
@@ -16,10 +13,10 @@
         .user-name-btn { background: #f0f2f0; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--primary); font-size: 12px; }
         .container { max-width: 850px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none !important; }
-        .card { background: white; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 600; }
+        .card { background: white; border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; border: 1px solid rgba(0,0,0,0.02); margin-bottom: 20px; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 600; font-size: 16px; }
         .input-field { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #e1e1e1; border-radius: 10px; box-sizing: border-box; }
-        .order-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .order-item { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f1f1f1; text-align: left; }
     </style>
 </head>
 <body>
@@ -35,119 +32,153 @@
 
 <div class="container">
     <div id="page-products">
-        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;">載入中...</div>
+        <div id="product-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:25px;"></div>
+    </div>
+    
+    <div id="page-detail" class="hidden">
+        <div id="detail-content" class="card" style="padding:40px;"></div>
+        <p style="text-align:center; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p>
     </div>
 
-    <div id="user-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:1000; display:flex; justify-content:center; align-items:center;">
-        <div style="background:white; padding:30px; border-radius:25px; width:360px; max-height:80vh; overflow-y:auto;">
-            <h3>會員中心</h3>
-            
-            <div id="user-info-view">
-                <p>暱稱：<b id="display-username"></b></p>
-                <p>介紹：<span id="display-bio"></span></p>
-                <button class="btn-submit" style="background:#f0f2f0; color:#4a4a4a;" onclick="setEditMode(true)">編輯個人資料</button>
-            </div>
-            
-            <div id="user-info-edit" class="hidden">
-                <input id="edit-username" class="input-field" placeholder="新暱稱">
-                <textarea id="edit-bio" class="input-field" style="height:80px;" placeholder="自我介紹"></textarea>
-                <button class="btn-submit" onclick="saveProfile()">儲存</button>
-            </div>
-
-            <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-            
-            <h4>歷史訂單</h4>
-            <div id="order-history">
-                <div class="order-item"><span>2025/11/29 - 招牌炒飯</span><b>NT$ 85</b></div>
-                <div class="order-item"><span>2025/11/25 - 日式咖哩飯</span><b>NT$ 120</b></div>
-                <div class="order-item"><span>2025/10/15 - 蝦仁炒飯</span><b>NT$ 95</b></div>
-            </div>
-
-            <button onclick="logout()" style="color:var(--danger); background:none; border:none; margin-top:20px; cursor:pointer; width:100%;">登出</button>
-            <button onclick="toggleUserModal()" style="color:#bbb; background:none; border:none; margin-top:10px; cursor:pointer; width:100%;">關閉</button>
-        </div>
+    <div id="page-cart" class="hidden">
+        <h2 style="text-align:center;">我的購物車</h2>
+        <div id="cart-container" class="card" style="padding:30px;"></div>
+        <button class="btn-submit" onclick="checkout()">立即結帳</button>
     </div>
 
     <div id="page-login" class="hidden">
-        <div class="card" style="padding:40px; max-width:350px; margin:0 auto;">
-            <h2 style="text-align:center;">會員登入</h2>
-            <input id="login-email" class="input-field" placeholder="Email">
+        <div class="card" style="max-width:350px; margin:0 auto; padding:40px;">
+            <input type="email" id="login-email" class="input-field" placeholder="Email">
             <input type="password" id="login-password" class="input-field" placeholder="密碼">
             <button class="btn-submit" onclick="apiLogin()">進入商城</button>
         </div>
     </div>
 </div>
 
+<div id="user-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:1000;">
+    <div style="background:white; padding:30px; border-radius:28px; width:340px; max-height:80vh; overflow-y:auto; text-align:center;">
+        <h3>會員中心</h3>
+        <p id="modal-username-display" style="font-weight:bold;"></p>
+        <button class="btn-submit" style="background:#f0f2f0; color:#4a4a4a; margin-bottom:20px;" onclick="setEditMode(true)">修改資料</button>
+        
+        <div id="profile-edit" class="hidden">
+            <input id="edit-username" class="input-field" placeholder="新暱稱">
+            <button class="btn-submit" onclick="saveProfile()">儲存</button>
+        </div>
+
+        <h4 style="text-align:left; border-top:1px solid #eee; padding-top:15px;">網頁購買紀錄</h4>
+        <div id="order-history">載入中...</div>
+        
+        <button onclick="logout()" style="color:var(--danger); background:none; border:none; margin-top:20px; cursor:pointer;">登出</button>
+        <button onclick="toggleUserModal()" style="color:#bbb; background:none; border:none; margin-top:10px; cursor:pointer;">關閉</button>
+    </div>
+</div>
+
 <script>
-    const API_URL = "/api";
-    let currentUser = JSON.parse(localStorage.getItem('萌商城_user')) || null;
+    const API_URL = "/api"; 
+    let allProducts = [], cart = [], currentUser = null;
 
     function showPage(p) {
-        document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden'));
+        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('page-' + p).classList.remove('hidden');
+        if (p === 'cart') renderCart();
+    }
+
+    async function loadProducts() {
+        const res = await fetch(`${API_URL}/products`);
+        allProducts = await res.json();
+        document.getElementById('product-list').innerHTML = allProducts.map(p => `
+            <div class="card" style="cursor:pointer;" onclick="showDetail(${p.id})">
+                <img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover;">
+                <h3 style="padding:15px;">${p.name}</h3>
+            </div>`).join('');
+    }
+
+    function showDetail(id) {
+        const p = allProducts.find(i => i.id === id);
+        document.getElementById('detail-content').innerHTML = `<h1>${p.name}</h1><p>NT$ ${p.price}</p><button class="btn-submit" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">加入購物車</button>`;
+        showPage('detail');
+    }
+
+    function addToCart(n, p, i) {
+        if (!currentUser) return alert("請先登入");
+        cart.push({ name: n, price: p, img: i });
+        document.getElementById('cart-count').innerText = cart.length;
+        alert("已加入");
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-container');
+        if (cart.length === 0) { container.innerHTML = "購物車空空的"; return; }
+        let total = cart.reduce((s, i) => s + i.price, 0);
+        container.innerHTML = cart.map(i => `<div style="padding:10px; border-bottom:1px solid #eee;">${i.name} - $${i.price}</div>`).join('') + `<b>總計: $${total}</b>`;
+    }
+
+    // 【修復重點】結帳並存入資料庫
+    async function checkout() {
+        if (cart.length === 0) return;
+        const total = cart.reduce((s, i) => s + i.price, 0);
+        const productsStr = cart.map(i => i.name).join(', ');
+        
+        const res = await fetch(`${API_URL}/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, products: productsStr, total: total })
+        });
+        
+        if (res.ok) {
+            alert("購買成功！");
+            cart = [];
+            document.getElementById('cart-count').innerText = "0";
+            showPage('products');
+        }
+    }
+
+    // 動態讀取真實紀錄
+    async function loadOrders() {
+        const res = await fetch(`${API_URL}/orders?email=${currentUser.email}`);
+        const orders = await res.json();
+        document.getElementById('order-history').innerHTML = orders.length ? orders.map(o => `
+            <div class="order-item">
+                <small>${o.order_date.split('T')[0]}</small>
+                <b>${o.product_name}</b>
+                <span style="color:var(--danger)">NT$ ${o.total_price}</span>
+            </div>`).join('') : "目前尚無訂單";
     }
 
     function toggleUserModal() {
-        const m = document.getElementById('user-modal');
-        m.classList.toggle('hidden');
-        if(!m.classList.contains('hidden')) {
-            document.getElementById('display-username').innerText = currentUser.username;
-            document.getElementById('display-bio').innerText = currentUser.bio || "無";
-            setEditMode(false);
+        const modal = document.getElementById('user-modal');
+        modal.classList.toggle('hidden');
+        if (!modal.classList.contains('hidden') && currentUser) {
+            document.getElementById('modal-username-display').innerText = currentUser.username;
+            loadOrders();
         }
     }
 
-    function setEditMode(edit) {
-        document.getElementById('user-info-view').className = edit ? 'hidden' : '';
-        document.getElementById('user-info-edit').className = edit ? '' : 'hidden';
-        if(edit) {
-            document.getElementById('edit-username').value = currentUser.username;
-            document.getElementById('edit-bio').value = currentUser.bio || "";
-        }
-    }
-
-    async function saveProfile() {
-        const newName = document.getElementById('edit-username').value;
-        const newBio = document.getElementById('edit-bio').value;
-        
-        // 這裡發送 API 更新 (模擬)
-        currentUser.username = newName;
-        currentUser.bio = newBio;
-        updateUI();
-        setEditMode(false);
-        alert("資料已更新！");
-    }
-
-    function updateUI() {
+    function updateLoginUI(user) {
+        currentUser = user;
         const display = document.getElementById('user-display');
         const loginBtn = document.getElementById('login-nav-btn');
-        if (currentUser) {
-            display.innerText = currentUser.username + "(已登入)";
+        if (user) {
+            display.innerText = user.username + "(已登入)";
             display.classList.remove('hidden');
             loginBtn.classList.add('hidden');
-            localStorage.setItem('萌商城_user', JSON.stringify(currentUser));
+            localStorage.setItem('萌商城_user', JSON.stringify(user));
         } else {
             display.classList.add('hidden');
             loginBtn.classList.remove('hidden');
         }
     }
 
-    async function loadProducts() {
-        const res = await fetch(`${API_URL}/products`);
-        const data = await res.json();
-        document.getElementById('product-list').innerHTML = data.map(p => `
-            <div class="card">
-                <img src="${p.image_url}" style="width:100%; height:200px; object-fit:cover;">
-                <div style="padding:15px;">
-                    <h3>${p.name}</h3>
-                    <p style="color:var(--danger); font-weight:bold;">NT$ ${p.price}</p>
-                </div>
-            </div>`).join('');
+    async function apiLogin() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+        if (res.ok) { updateLoginUI(await res.json()); showPage('products'); loadProducts(); }
     }
-
-    function logout() { currentUser = null; updateUI(); location.reload(); }
     
-    updateUI();
+    const savedUser = localStorage.getItem('萌商城_user');
+    if (savedUser) updateLoginUI(JSON.parse(savedUser));
     loadProducts();
 </script>
 </body>
