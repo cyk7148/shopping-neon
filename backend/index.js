@@ -23,7 +23,7 @@ app.get('/api/products', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// 結帳並給予 1% 回饋
+// 結帳 + 1% 回饋
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   const reward = Math.floor(Number(total) * 0.01); 
@@ -36,7 +36,7 @@ app.post('/api/checkout', async (req, res) => {
   } catch (err) { await pool.query('ROLLBACK'); res.status(500).send(); }
 });
 
-// 115 蛇年刮刮樂預測 API
+// 蛇年刮刮樂預測 API
 app.post('/api/scratch-win', async (req, res) => {
   const { email } = req.body;
   try {
@@ -48,7 +48,7 @@ app.post('/api/scratch-win', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 登入 API - 恢復回傳所有用戶資訊
+// 登入 API - 確保回傳所有資訊且積分為數字
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -64,4 +64,4 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-app.listen(process.env.PORT || 3000, () => console.log('萌伺服器啟動'));
+app.listen(process.env.PORT || 3000, () => console.log('伺服器啟動'));
