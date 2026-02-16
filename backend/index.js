@@ -16,7 +16,7 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 蛇王得主公告 API (獲取積分 >= 88萬的用戶暱稱與自介)
+// 1. 蛇王得主公告 API (獲取大獎得主名單及其自介)
 app.get('/api/winners', async (req, res) => {
   try {
     const result = await pool.query(
@@ -26,16 +26,17 @@ app.get('/api/winners', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 2. 同步資料與登入
+// 2. 同步資料 API (含強制修改標記)
 app.post('/api/get-user', async (req, res) => {
   try {
     const r = await pool.query('SELECT username, email, bio, points, is_profile_updated FROM users WHERE email = $1', [req.body.email]);
     if (r.rows.length > 0) {
-      res.json({ ...r.rows[0], points: Number(r.rows[0].points) }); // 確保積分是數字
+      res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
     } else res.status(404).send();
   } catch (err) { res.status(500).send(); }
 });
 
+// 3. 登入與自動註冊
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -50,7 +51,7 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 3. 修改個人資料 (成功後解除強制修改鎖定)
+// 4. 修改個人資料 (成功後標記 is_profile_updated = TRUE)
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio, password } = req.body;
   try {
@@ -64,7 +65,7 @@ app.post('/api/update-profile', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 4. 每日簽到
+// 5. 每日簽到
 app.post('/api/daily-signin', async (req, res) => {
   try {
     const result = await pool.query(
@@ -78,7 +79,7 @@ app.post('/api/daily-signin', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 5. 刮刮樂邏輯 (權重隨機抽獎)
+// 6. 刮刮樂邏輯 (0.01% 機率實現)
 app.post('/api/scratch-win', async (req, res) => {
   try {
     const u = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
@@ -95,7 +96,7 @@ app.post('/api/scratch-win', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 6. 產品、結帳與訂單
+// 7. 產品、結帳 (含 1% 回饋) 與訂單
 app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
 
 app.post('/api/checkout', async (req, res) => {
