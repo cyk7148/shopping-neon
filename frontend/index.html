@@ -9,24 +9,29 @@
         body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); margin: 0; }
         header { background: white; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top:0; z-index:100; }
         .logo { font-size: 24px; font-weight: bold; cursor: pointer; }
-        .nav-right { display: flex; align-items: center; gap: 15px; }
-        .user-name-btn { color: var(--primary); font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; transition: 0.3s; }
+        .user-name-btn { color: var(--primary); font-weight: bold; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
         .user-name-btn:hover { background: #f0f0f0; text-decoration: underline; }
 
-        /* 個人資料彈窗 */
+        /* 會員中心彈窗 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .modal-card { background: white; padding: 25px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .bio-box { color: #666; font-size: 14px; margin: 15px 0; background: #f9f9f9; padding: 15px; border-radius: 10px; text-align: left; min-height: 50px; }
-
+        .info-label { text-align: left; font-size: 13px; color: #888; margin-bottom: 5px; }
+        .bio-box { color: #666; font-size: 14px; margin: 10px 0; background: #f9f9f9; padding: 12px; border-radius: 10px; text-align: left; }
+        
+        /* 基礎容器 */
         .container { max-width: 800px; margin: 30px auto; padding: 0 20px; }
         .hidden { display: none !important; }
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; cursor: pointer; transition: 0.3s; }
-        .product-card img { width: 100%; height: 200px; object-fit: cover; }
-        
-        /* 購物車與詳情頁 */
-        .btn-cart-header { background: var(--warning); color: white; border: none; padding: 8px 18px; border-radius: 25px; cursor: pointer; font-weight: bold; }
-        .submit-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; }
+        .product-card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; padding-bottom: 15px; cursor: pointer; }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid #eee; }
+
+        /* 按鈕與輸入 */
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn-outline { background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin: 5px; }
+        .input-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-logout { background: #fee; color: #e74c3c; border: none; padding: 10px; border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer; font-weight: bold; }
+
+        /* 購物車 */
         .cart-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; gap: 15px; }
         .item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
     </style>
@@ -36,60 +41,70 @@
 <header>
     <div class="logo" onclick="showPage('products')">萌商城</div>
     <div class="nav-right">
-        <button class="btn-cart-header" onclick="showPage('cart')">🛒 購物車 (<span id="cart-count">0</span>)</button>
+        <button onclick="showPage('cart')" style="background:var(--warning); color:white; border:none; padding:8px 18px; border-radius:25px; cursor:pointer; font-weight:bold;">🛒 購物車 (<span id="cart-count">0</span>)</button>
         <span id="user-display" class="user-name-btn hidden" onclick="toggleUserModal()"></span>
         <button id="login-nav-btn" class="user-name-btn" onclick="showPage('login')">登入</button>
     </div>
 </header>
 
+<div id="user-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <h2 id="modal-title">會員中心</h2>
+        <div class="info-label">登入帳號：<span id="modal-email" style="color:#333; font-weight:bold;"></span></div>
+        
+        <div id="view-mode">
+            <div class="bio-box" id="display-bio"></div>
+            <button class="btn-outline" onclick="setEditMode('bio')">✎ 編輯介紹</button>
+            <button class="btn-outline" onclick="setEditMode('pwd')">🔑 修改密碼</button>
+        </div>
+
+        <div id="bio-mode" class="hidden">
+            <textarea id="edit-bio-input" class="input-field" style="height:80px;"></textarea>
+            <button class="btn-submit" onclick="saveBio()">儲存介紹</button>
+            <p onclick="setEditMode('none')" style="cursor:pointer; color:#999; font-size:12px; margin-top:10px;">取消</p>
+        </div>
+
+        <div id="pwd-mode" class="hidden">
+            <input type="password" id="new-password" class="input-field" placeholder="請輸入新密碼">
+            <button class="btn-submit" style="background:#f39c12;" onclick="savePassword()">確認更新密碼</button>
+            <p onclick="setEditMode('none')" style="cursor:pointer; color:#999; font-size:12px; margin-top:10px;">取消</p>
+        </div>
+
+        <button class="btn-logout" onclick="location.reload()">登出帳號</button>
+        <button onclick="toggleUserModal()" style="width:100%; margin-top:10px; border:none; background:none; color:#bbb; cursor:pointer;">關閉視窗</button>
+    </div>
+</div>
+
 <div class="container">
     <div id="page-products">
-        <h2 style="text-align:center;">熱門商品</h2>
-        <div class="product-grid" id="product-list">載入中...</div>
+        <h2 style="text-align:center; margin-bottom:30px;">熱門商品</h2>
+        <div id="product-list" class="product-grid">載入中...</div>
     </div>
 
     <div id="page-detail" class="hidden">
         <div id="detail-content" style="background:white; padding:25px; border-radius:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
-        <p style="text-align:center; margin-top:20px; cursor:pointer; color:#888;" onclick="showPage('products')">← 回到列表</p>
+        <p style="text-align:center; margin-top:20px; cursor:pointer; color:#888;" onclick="showPage('products')">← 返回商品列表</p>
     </div>
 
     <div id="page-cart" class="hidden">
         <h2 style="text-align:center;">🛒 購物車清單</h2>
-        <div id="cart-items-container" style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);"></div>
-        <button class="submit-btn" style="margin-top:20px;" onclick="checkout()">立即結帳</button>
-    </div>
-
-    <div id="user-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h2 id="modal-title">會員資料</h2>
-            <div id="bio-view-mode">
-                <div class="bio-box" id="display-bio"></div>
-                <button onclick="setEditMode(true)" style="border:1px solid #ddd; padding:5px; border-radius:5px; cursor:pointer;">✎ 編輯介紹</button>
-            </div>
-            <div id="bio-edit-mode" class="hidden">
-                <textarea id="edit-bio-input" style="width:100%; height:80px; margin-bottom:10px; padding:10px; border-radius:5px;"></textarea>
-                <button class="submit-btn" onclick="saveBio()">儲存變更</button>
-            </div>
-            <button onclick="location.reload()" style="background:#fee; color:red; border:none; padding:10px; width:100%; border-radius:8px; margin-top:15px; cursor:pointer; font-weight:bold;">登出帳號</button>
-            <button onclick="toggleUserModal()" style="width:100%; margin-top:10px; border:none; background:none; color:#999; cursor:pointer;">關閉視窗</button>
-        </div>
+        <div id="cart-container" style="background:white; padding:20px; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.05);"></div>
+        <button class="btn-submit" style="margin-top:20px;" onclick="checkout()">立即結帳</button>
     </div>
 
     <div id="page-login" class="hidden">
-        <div style="background:white; padding:30px; border-radius:15px; max-width:400px; margin:0 auto; text-align:center;">
-            <h2>會員登入</h2>
-            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
-            <input type="password" id="login-password" placeholder="密碼" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
-            <button class="submit-btn" onclick="apiLogin()">進入萌商城</button>
+        <div style="background:white; padding:40px; border-radius:15px; max-width:350px; margin:0 auto; text-align:center; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+            <h2 style="margin-top:0;">登入萌商城</h2>
+            <input type="email" id="login-email" class="input-field" placeholder="Email">
+            <input type="password" id="login-password" class="input-field" placeholder="密碼">
+            <button class="btn-submit" onclick="apiLogin()">登入</button>
         </div>
     </div>
 </div>
 
 <script>
     const API_URL = "/api"; 
-    let allProducts = [];
-    let cart = [];
-    let currentUser = null;
+    let allProducts = [], cart = [], currentUser = null;
 
     function showPage(p) {
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
@@ -110,19 +125,55 @@
 
     function showDetail(id) {
         const p = allProducts.find(i => i.id === id);
-        const isLoggedIn = !document.getElementById('user-display').classList.contains('hidden');
+        const isLoggedIn = currentUser !== null;
         document.getElementById('detail-content').innerHTML = `
             <img src="${p.image_url}" style="width:100%; max-height:400px; object-fit:contain; border-radius:10px;">
             <h1>${p.name}</h1>
             <p style="color:#e74c3c; font-size:24px; font-weight:bold;">NT$ ${p.price}</p>
-            <div style="border-top:1px solid #eee; padding-top:15px;">
-                <strong>商品介紹：</strong><p>${p.description || "萌萌的商品，等你帶回家！"}</p>
+            <div style="border-top:1px solid #eee; padding-top:15px; color:#555; line-height:1.6;">
+                <strong>商品介紹：</strong><p>${p.description || "資訊載入中..."}</p>
             </div>
-            <button class="submit-btn" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
-                ${isLoggedIn ? "🛒 加入購物車" : "請先登入後再購買"}
+            <button class="btn-submit" style="margin-top:20px;" onclick="addToCart('${p.name}', ${p.price}, '${p.image_url}')">
+                ${isLoggedIn ? "🛒 加入購物車" : "請登入後購買"}
             </button>
         `;
         showPage('detail');
+    }
+
+    function toggleUserModal() {
+        const modal = document.getElementById('user-modal');
+        modal.classList.toggle('hidden');
+        if (!modal.classList.contains('hidden') && currentUser) {
+            setEditMode('none');
+            document.getElementById('modal-email').innerText = currentUser.email;
+            document.getElementById('display-bio').innerText = currentUser.bio;
+        }
+    }
+
+    function setEditMode(m) {
+        document.getElementById('view-mode').className = (m === 'none') ? '' : 'hidden';
+        document.getElementById('bio-mode').className = (m === 'bio') ? '' : 'hidden';
+        document.getElementById('pwd-mode').className = (m === 'pwd') ? '' : 'hidden';
+        if(m === 'bio') document.getElementById('edit-bio-input').value = currentUser.bio;
+    }
+
+    async function saveBio() {
+        const bio = document.getElementById('edit-bio-input').value;
+        const res = await fetch(`${API_URL}/update-bio`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, bio })
+        });
+        if (res.ok) { currentUser.bio = bio; setEditMode('none'); toggleUserModal(); alert("介紹已更新！"); }
+    }
+
+    async function savePassword() {
+        const newPassword = document.getElementById('new-password').value;
+        if(!newPassword) return alert("請輸入密碼");
+        const res = await fetch(`${API_URL}/update-password`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, newPassword })
+        });
+        if (res.ok) { setEditMode('none'); alert("密碼修改成功！"); }
     }
 
     function addToCart(name, price, img) {
@@ -134,7 +185,7 @@
     }
 
     function renderCart() {
-        const container = document.getElementById('cart-items-container');
+        const container = document.getElementById('cart-container');
         if (cart.length === 0) { container.innerHTML = "購物車目前是空的。"; return; }
         let total = 0;
         container.innerHTML = cart.map((item, index) => {
@@ -145,41 +196,16 @@
                     <div style="flex:1;"><b>${item.name}</b><br><small>單價: $${item.price}</small></div>
                     <div style="display:flex; align-items:center; border:1px solid #ddd; border-radius:5px;">
                         <button onclick="changeQty(${index}, -1)" style="padding:5px 10px; border:none;">-</button>
-                        <span style="padding:0 10px;">${item.qty}</span>
+                        <span style="padding:0 10px; font-weight:bold;">${item.qty}</span>
                         <button onclick="changeQty(${index}, 1)" style="padding:5px 10px; border:none;">+</button>
                     </div>
                     <div style="width:100px; text-align:right; font-weight:bold;">NT$ ${sub}</div>
                 </div>`;
-        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:15px; font-size:18px;">總金額：NT$ ${total}</div>`;
+        }).join('') + `<div style="text-align:right; font-weight:bold; margin-top:20px; font-size:18px;">總額：NT$ ${total}</div>`;
     }
 
     function changeQty(i, d) { cart[i].qty = Math.max(1, cart[i].qty + d); renderCart(); }
     function checkout() { alert("感謝購買！"); cart = []; document.getElementById('cart-count').innerText = "0"; showPage('products'); }
-
-    function toggleUserModal() {
-        const modal = document.getElementById('user-modal');
-        modal.classList.toggle('hidden');
-        if (!modal.classList.contains('hidden')) {
-            setEditMode(false);
-            document.getElementById('modal-title').innerText = currentUser.username + " 的資料";
-            document.getElementById('display-bio').innerText = currentUser.bio;
-        }
-    }
-
-    function setEditMode(isEdit) {
-        document.getElementById('bio-view-mode').className = isEdit ? 'hidden' : '';
-        document.getElementById('bio-edit-mode').className = isEdit ? '' : 'hidden';
-        if(isEdit) document.getElementById('edit-bio-input').value = currentUser.bio;
-    }
-
-    async function saveBio() {
-        const newBio = document.getElementById('edit-bio-input').value;
-        const res = await fetch(`${API_URL}/update-bio`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: currentUser.email, bio: newBio })
-        });
-        if (res.ok) { currentUser.bio = newBio; setEditMode(false); toggleUserModal(); alert("更新成功！"); }
-    }
 
     async function apiLogin() {
         const email = document.getElementById('login-email').value;
