@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ⚠️ 重要：Render 連接 Neon 必須開啟 SSL 設定，否則會同步失敗
+// Render 連接 Neon 必須開啟 SSL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -16,27 +16,25 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. 蛇王得主公告 API (獲取大獎得主名單及其自介)
+// 1. [營運升級] 公告欄 API：只顯示擁有認證標記的蛇王
 app.get('/api/winners', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT username, bio FROM users WHERE points >= 880000 ORDER BY points DESC'
+      'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id DESC'
     );
     res.json(result.rows);
   } catch (err) { res.status(500).send(); }
 });
 
-// 2. 同步資料 API (含強制修改標記)
+// 2. 同步資料與登入
 app.post('/api/get-user', async (req, res) => {
   try {
     const r = await pool.query('SELECT username, email, bio, points, is_profile_updated FROM users WHERE email = $1', [req.body.email]);
-    if (r.rows.length > 0) {
-      res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
-    } else res.status(404).send();
+    if (r.rows.length > 0) res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
+    else res.status(404).send();
   } catch (err) { res.status(500).send(); }
 });
 
-// 3. 登入與自動註冊
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -51,7 +49,7 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 4. 修改個人資料 (成功後標記 is_profile_updated = TRUE)
+// 3. 修改個人資料 (成功後解除強制修改鎖定)
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio, password } = req.body;
   try {
@@ -65,21 +63,7 @@ app.post('/api/update-profile', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 5. 每日簽到
-app.post('/api/daily-signin', async (req, res) => {
-  try {
-    const result = await pool.query(
-        `UPDATE users SET points = COALESCE(points, 0) + 10, last_signin_date = CURRENT_DATE 
-         WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [req.body.email]
-    );
-    if (result.rowCount > 0) {
-        const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
-        res.json({ message: "OK", points: Number(up.rows[0].points) });
-    } else res.status(400).json({ error: "今天已經簽到過囉！" });
-  } catch (err) { res.status(500).send(); }
-});
-
-// 6. 刮刮樂邏輯 (0.01% 機率實現)
+// 4. [邏輯強化] 刮刮樂：中 88 萬時寫入防偽標記
 app.post('/api/scratch-win', async (req, res) => {
   try {
     const u = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
@@ -90,13 +74,28 @@ app.post('/api/scratch-win', async (req, res) => {
     let r = Math.floor(Math.random() * totalW), sel = prizes[0];
     for (const p of prizes) { if (r < p.weight) { sel = p; break; } r -= p.weight; }
     
+    // 如果中大獎，更新 has_won_jackpot
+    if (sel.points_reward === 880000) {
+      await pool.query('UPDATE users SET has_won_jackpot = TRUE WHERE email = $1', [req.body.email]);
+    }
+    
     await pool.query('UPDATE users SET points = points - 1 + $1 WHERE email = $2', [sel.points_reward, req.body.email]);
     const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
     res.json({ prizeName: sel.name, newTotal: Number(up.rows[0].points) });
   } catch (err) { res.status(500).send(); }
 });
 
-// 7. 產品、結帳 (含 1% 回饋) 與訂單
+// 5. 其他功能 (簽到、商品、結帳)
+app.post('/api/daily-signin', async (req, res) => {
+  try {
+    const result = await pool.query(`UPDATE users SET points = points + 10, last_signin_date = CURRENT_DATE WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [req.body.email]);
+    if (result.rowCount > 0) {
+      const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
+      res.json({ message: "OK", points: Number(up.rows[0].points) });
+    } else res.status(400).json({ error: "今天已經簽到過了" });
+  } catch (err) { res.status(500).send(); }
+});
+
 app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
 
 app.post('/api/checkout', async (req, res) => {
