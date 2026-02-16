@@ -1,86 +1,191 @@
-const express = require('express');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萌商城 - 115 蛇年大慶</title>
+    <link rel="icon" href="https://img.icons8.com/color/96/dinosaur.png">
+    <style>
+        :root { --primary: #7db9a1; --primary-bg: #f0f7f4; --bg: #fdfaf7; --text: #4a4a4a; --shadow: 0 12px 40px rgba(0,0,0,0.08); --accent: #d4a017; --danger: #e63946; --gold: #ffd700; }
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+        
+        /* 導覽列與鼠標懸停美化 */
+        header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); padding: 0 5%; display: flex; align-items: center; height: 70px; box-shadow: 0 2px 15px rgba(0,0,0,0.02); position: sticky; top: 0; z-index: 100; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 900; color: var(--primary); cursor: pointer; flex: 1; transition: 0.3s; }
+        .logo:hover { transform: scale(1.05); }
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+        /* 左側選單：滑過位移特效 */
+        .drawer { width: 280px; background: white; height: 100%; padding: 40px 25px; box-sizing: border-box; transform: translateX(0); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .drawer.closed { transform: translateX(-100%); }
+        .drawer-item { padding: 15px; border-radius: 18px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-weight: 600; color: #666; transition: 0.3s; }
+        .drawer-item:hover { background: var(--primary-bg); color: var(--primary); transform: translateX(12px); }
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+        /* 購買紀錄面板修復 */
+        #history-panel { position: fixed; right: 0; top: 0; width: 350px; height: 100%; background: white; box-shadow: -10px 0 40px rgba(0,0,0,0.1); padding: 30px; box-sizing: border-box; z-index: 2005; transition: 0.4s ease; overflow-y: auto; }
+        #history-panel.closed { transform: translateX(100%); pointer-events: none; }
+        .btn-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f5f5f5; color: #999; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn-close:hover { background: var(--danger); color: white; transform: rotate(90deg); }
 
-app.use(express.static(path.join(__dirname, '../frontend')));
+        /* 商品卡片：上浮感 */
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 30px; box-shadow: var(--shadow); padding: 25px; margin-bottom: 20px; transition: 0.4s; border: 1px solid rgba(0,0,0,0.01); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 50px rgba(125,185,161,0.15); }
+        
+        .btn-main { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 20px; cursor: pointer; width: 100%; font-weight: 700; font-size: 16px; transition: 0.3s; }
+        .btn-main:hover { filter: brightness(1.05); transform: translateY(-2px); }
 
-// 取得商品列表
-app.get('/api/products', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM products ORDER BY id ASC');
-    res.json(result.rows);
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+        /* 蛇年刮刮樂專屬 */
+        .modal-new-year { background: linear-gradient(135deg, #b91d1d 0%, #7f1d1d 100%); color: white; border: 4px solid var(--gold); }
+        #scratch-container { position: relative; width: 280px; height: 140px; margin: 20px auto; background: #fff; border-radius: 15px; border: 2px solid var(--gold); overflow: hidden; }
+        #prize-text { position: absolute; width: 100%; line-height: 140px; font-size: 20px; font-weight: 900; color: #b91d1d; text-align: center; }
 
-// 結帳 + 1% 積分回饋
-app.post('/api/checkout', async (req, res) => {
-  const { email, products, total, image_url } = req.body;
-  const reward = Math.floor(parseInt(total) * 0.01); // 1% 算法
-  try {
-    await pool.query('BEGIN');
-    await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, parseInt(total), image_url]);
-    await pool.query('UPDATE users SET points = points + $1 WHERE email = $2', [reward, email]);
-    await pool.query('COMMIT');
-    res.json({ message: "OK", reward });
-  } catch (err) { await pool.query('ROLLBACK'); res.status(500).json({ error: err.message }); }
-});
+        .hidden { display: none !important; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2010; }
+        .modal-card { background: white; padding: 40px; border-radius: 35px; width: 380px; text-align: center; position: relative; }
+    </style>
+</head>
+<body>
 
-// 新年刮刮樂預測結算
-app.post('/api/scratch-win', async (req, res) => {
-  const { email } = req.body;
-  const cost = 10;
-  try {
-    const user = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
-    if (user.rows[0].points < cost) return res.status(400).json({ error: "積分不足" });
-    const prizes = await pool.query('SELECT * FROM scratch_prizes');
-    const totalWeight = prizes.rows.reduce((sum, p) => sum + p.weight, 0);
-    let random = Math.floor(Math.random() * totalWeight);
-    let selected = prizes.rows[0];
-    for (const p of prizes.rows) { if (random < p.weight) { selected = p; break; } random -= p.weight; }
-    await pool.query('UPDATE users SET points = points - $1 + $2 WHERE email = $3', [cost, selected.points_reward, email]);
-    res.json({ prizeName: selected.name, reward: selected.points_reward, newTotal: user.rows[0].points - cost + selected.points_reward });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+<header>
+    <button onclick="toggleDrawer()" style="font-size:26px; cursor:pointer; color:var(--primary); border:none; background:none; margin-right:15px;">☰</button>
+    <div class="logo" onclick="showPage('products')"><img src="https://img.icons8.com/color/96/dinosaur.png" style="width:38px;"><span>萌商城</span></div>
+</header>
 
-// 簽到 API
-app.post('/api/daily-signin', async (req, res) => {
-  try {
-    await pool.query('UPDATE users SET points = points + 10 WHERE email = $1', [req.body.email]);
-    res.json({ message: "OK" });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+<div id="drawer-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.2); z-index:1001;" onclick="toggleDrawer()">
+    <div id="drawer-panel" class="drawer closed" onclick="event.stopPropagation()">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:40px; color:var(--primary); font-size:24px; font-weight:900;"><img src="https://img.icons8.com/color/96/dinosaur.png" style="width:40px;">萌工具</div>
+        <div class="drawer-item" onclick="openModal('modal-scratch')">🧧 蛇年刮刮樂</div>
+        <div class="drawer-item" onclick="openModal('modal-signin')">📅 每日簽到</div>
+        <div class="drawer-item" onclick="showPage('cart'); toggleDrawer();">🛒 我的購物車 (<span id="cart-count">0</span>)</div>
+        <div class="drawer-item" onclick="toggleHistoryPanel(); toggleDrawer();">📜 購買紀錄</div>
+        <div class="drawer-item" onclick="openModal('user-modal')">👤 會員中心</div>
+        <div class="drawer-item" id="btn-login-nav" onclick="showPage('login'); toggleDrawer();">🔑 登入</div>
+        <div class="drawer-item hidden" id="btn-logout-nav" onclick="logout(); toggleDrawer();" style="color:var(--danger); margin-top:40px;">🚪 登出帳號</div>
+    </div>
+</div>
 
-// 登入 API
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length > 0 && await bcrypt.compare(password, user.rows[0].password)) {
-      res.json({ username: user.rows[0].username, email: user.rows[0].email, bio: user.rows[0].bio, points: user.rows[0].points });
-    } else res.status(401).send();
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
+<div id="history-panel" class="closed">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h3 style="margin:0;">🛍️ 購買紀錄</h3>
+        <button class="btn-close" onclick="toggleHistoryPanel()">✕</button>
+    </div>
+    <div id="history-list"></div>
+</div>
 
-app.get('/api/orders', async (req, res) => {
-  const result = await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [req.query.email]);
-  res.json(result.rows);
-});
+<div class="container">
+    <div id="page-products" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:30px;"></div>
+    <div id="page-detail" class="hidden"><div id="detail-content" class="card"></div><p style="text-align:center; cursor:pointer; color:#bbb;" onclick="showPage('products')">← 返回列表</p></div>
+    <div id="page-cart" class="hidden">
+        <h2>🛒 我的購物車</h2>
+        <div id="cart-container" class="card"></div>
+        <div class="card" style="text-align:right;">
+            <h3>總金額: $<span id="cart-total">0</span></h3>
+            <p style="color:var(--primary); font-size:14px;">結帳回饋：<span id="reward-points">0</span> 積分 (1%)</p>
+            <button class="btn-main" onclick="checkout()">確認結帳</button>
+        </div>
+    </div>
+    <div id="page-login" class="hidden">
+        <div class="card" style="max-width:350px; margin:0 auto; text-align:center; padding:40px;">
+            <h2>登入</h2><input type="email" id="login-email" style="width:100%; padding:12px; margin-bottom:12px; border-radius:12px; border:1px solid #eee;" placeholder="Email"><input type="password" id="login-password" style="width:100%; padding:12px; margin-bottom:20px; border-radius:12px; border:1px solid #eee;" placeholder="Password"><button class="btn-main" onclick="apiLogin()">進入商城</button>
+        </div>
+    </div>
+</div>
 
-app.post('/api/update-profile', async (req, res) => {
-  if (req.body.username) await pool.query('UPDATE users SET username = $1 WHERE email = $2', [req.body.username, req.body.email]);
-  if (req.body.bio) await pool.query('UPDATE users SET bio = $1 WHERE email = $2', [req.body.bio, req.body.email]);
-  res.json({ message: "OK" });
-});
+<div id="modal-scratch" class="hidden modal-overlay">
+    <div class="modal-card modal-new-year">
+        <div style="position:absolute; right:20px; top:20px;"><button class="btn-close" onclick="closeModals()">✕</button></div>
+        <h2>🐍 115 蛇年大吉</h2>
+        <p>花費 10 積分，刮出開工好運！</p>
+        <div id="scratch-container">
+            <div id="prize-text">等待開刮...</div>
+            <canvas id="scratch-canvas" width="280" height="140" style="position:absolute; top:0; left:0; cursor:crosshair;"></canvas>
+        </div>
+        <button id="btn-start-scratch" class="btn-main" style="background:var(--gold); color:#b91d1d; font-weight:900;" onclick="startScratch()">開始預測</button>
+    </div>
+</div>
 
-app.listen(process.env.PORT || 3000, () => console.log('萌伺服器啟動'));
+<div id="user-modal" class="hidden modal-overlay"><div class="modal-card">
+    <div style="position:absolute; right:20px; top:20px;"><button class="btn-close" onclick="closeModals()">✕</button></div>
+    <h3 style="margin-top:0;">會員中心</h3>
+    <div style="text-align:left; background:#fafafa; padding:20px; border-radius:20px; margin-bottom:15px;">
+        <p>帳號：<b id="m-email"></b></p>
+        <p>暱稱：<b id="m-name"></b></p>
+        <p>密碼：<b>********</b></p> <p>介紹：<b id="m-bio"></b></p>
+        <p>累計積分：<b id="m-points" style="color:var(--accent);">0</b></p>
+    </div>
+    <button class="btn-main" style="background:#eee; color:#444;" onclick="document.getElementById('edit-box').classList.toggle('hidden')">編輯資料</button>
+    <div id="edit-box" class="hidden" style="margin-top:15px;"><input id="n-name" placeholder="新暱稱" style="width:100%; padding:10px; margin-bottom:10px;"><button onclick="saveF('username','n-name')" class="btn-main">修改</button></div>
+</div></div>
+
+<div id="modal-signin" class="hidden modal-overlay"><div class="modal-card"><div style="position:absolute; right:20px; top:20px;"><button class="btn-close" onclick="closeModals()">✕</button></div><h2>每日簽到</h2><p>+10 積分</p><button class="btn-main" onclick="doSignIn()">立即簽到</button></div></div>
+
+<script>
+    const API_URL = "/api"; 
+    let allProducts = [], cart = [], currentUser = null, userPoints = 0, hasSignedIn = false;
+
+    // 開關控制與 1% 算法
+    function toggleHistoryPanel() { if(!currentUser) return alert("請登入"); const p = document.getElementById('history-panel'); p.classList.toggle('closed'); if(!p.classList.contains('closed')) loadOrders(); }
+    function toggleDrawer() { const o = document.getElementById('drawer-overlay'), p = document.getElementById('drawer-panel'); if(o.classList.contains('hidden')){ o.classList.remove('hidden'); setTimeout(()=>p.classList.remove('closed'),10); }else{ p.classList.add('closed'); setTimeout(()=>o.classList.add('hidden'),300); } }
+    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden')); document.getElementById('btn-start-scratch').style.display = 'block'; }
+    function openModal(id) { if(!currentUser) return alert("請登入"); toggleDrawer(); if(id==='user-modal'){ document.getElementById('m-email').innerText=currentUser.email; document.getElementById('m-name').innerText=currentUser.username; document.getElementById('m-points').innerText=userPoints; document.getElementById('m-bio').innerText=currentUser.bio||"網頁創作者"; } document.getElementById(id).classList.remove('hidden'); }
+    function showPage(p) { document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden')); document.getElementById('page-' + p).classList.remove('hidden'); if(p==='cart') renderCart(); }
+
+    async function loadProducts() { const res = await fetch(`${API_URL}/products`); allProducts = await res.json(); document.getElementById('page-products').innerHTML = allProducts.map(p => `<div class="card" onclick="showDetail(${p.id})" style="cursor:pointer;"><img src="${p.image_url}" style="width:100%; height:220px; object-fit:cover; border-radius:22px;"><h3>${p.name}</h3><p style="color:var(--primary); font-weight:800;">$${p.price}</p></div>`).join(''); }
+    function showDetail(id) { const p = allProducts.find(x => x.id === id); document.getElementById('detail-content').innerHTML = `<img src="${p.image_url}" style="width:100%; max-width:400px; border-radius:25px; margin-bottom:20px; box-shadow:var(--shadow);"><h1>${p.name}</h1><div style="color:var(--primary); font-size:26px; font-weight:900;">$${p.price}</div><p style="background:#fafafa; padding:20px; border-radius:20px;">${p.description}</p><button class="btn-main" onclick="addToCart(${p.id})" style="margin-top:20px;">🛒 加入購物車</button>`; showPage('detail'); }
+    
+    function renderCart() { 
+        let total = cart.reduce((s,i)=> s + i.price * i.qty, 0); 
+        document.getElementById('cart-total').innerText = total; 
+        document.getElementById('reward-points').innerText = Math.floor(total * 0.01); 
+        const container = document.getElementById('cart-container');
+        container.innerHTML = cart.map((item, idx) => `<div style="display:flex; align-items:center; gap:15px; padding:15px 0; border-bottom:1px solid #eee;"><img src="${item.image_url}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;"><div style="flex:1"><b>${item.name}</b><br><small>$${item.price}</small></div><div style="display:flex; align-items:center; gap:8px;"><button style="border:none; background:#eee; width:25px; height:25px; border-radius:5px;" onclick="updateQty(${idx},-1)">-</button><span>${item.qty}</span><button style="border:none; background:#eee; width:25px; height:25px; border-radius:5px;" onclick="updateQty(${idx},1)">+</button></div></div>`).join('') || "購物車空空的";
+    }
+
+    async function startScratch() {
+        if(userPoints < 10) return alert("積分不足");
+        const res = await fetch(`${API_URL}/scratch-win`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email }) });
+        const data = await res.json();
+        document.getElementById('prize-text').innerText = data.prizeName;
+        userPoints = data.newTotal;
+        initCanvas(); document.getElementById('btn-start-scratch').style.display = 'none';
+    }
+
+    function initCanvas() {
+        const canvas = document.getElementById('scratch-canvas'); const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#d4af37'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#7f1d1d'; ctx.font = '24px Bold Arial'; ctx.fillText('115 蛇年大吉', 60, 80);
+        ctx.globalCompositeOperation = 'destination-out';
+        const scratch = (x, y) => { ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI * 2); ctx.fill(); };
+        canvas.onmousemove = (e) => { if (e.buttons === 1) { const r = canvas.getBoundingClientRect(); scratch(e.clientX - r.left, e.clientY - r.top); } };
+        canvas.ontouchmove = (e) => { const r = canvas.getBoundingClientRect(); const t = e.touches[0]; scratch(t.clientX - r.left, t.clientY - r.top); e.preventDefault(); };
+    }
+
+    async function doSignIn() { 
+        const res = await fetch(`${API_URL}/daily-signin`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email }) });
+        if(res.ok) { userPoints += 10; alert("簽到成功！獲得 10 積分"); closeModals(); }
+    }
+    async function checkout() {
+        if(cart.length===0) return;
+        const total = parseInt(document.getElementById('cart-total').innerText);
+        const res = await fetch(`${API_URL}/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, products: cart.map(i=>`${i.name}(x${i.qty})`).join(', '), total: total, image_url: cart[0].image_url }) });
+        if(res.ok) { const data = await res.json(); userPoints += data.reward; alert(`獲得 1% 積分: ${data.reward}`); cart=[]; updateCount(); showPage('products'); }
+    }
+    async function loadOrders() {
+        const res = await fetch(`${API_URL}/orders?email=${currentUser.email}`);
+        const data = await res.json();
+        document.getElementById('history-list').innerHTML = data.map(o => `<div style="background:#f9f9f9; padding:15px; border-radius:15px; margin-bottom:12px;"><div style="display:flex; align-items:center; gap:12px;"><img src="${o.image_url}" style="width:50px; height:50px; border-radius:10px;"><div><b>$${o.total_price}</b><br><small>${o.order_date.split('T')[0]}</small></div></div><div style="font-size:13px; margin-top:10px;">${o.product_name}</div></div>`).join('') || "尚無紀錄";
+    }
+
+    function updateQty(idx, d) { cart[idx].qty += d; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); updateCount(); }
+    function addToCart(id) { if (!currentUser) return alert("請登入"); const p = allProducts.find(x => x.id === id); const exist = cart.find(x => x.id === id); if (exist) exist.qty++; else cart.push({ ...p, qty: 1 }); updateCount(); alert("已加入！"); }
+    function updateCount() { document.getElementById('cart-count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
+    async function apiLogin() { const e = document.getElementById('login-email').value, p = document.getElementById('login-password').value; const res = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: e, password: p }) }); if (res.ok) { const data = await res.json(); userPoints = data.points; updateLoginUI(data); showPage('products'); loadProducts(); } else alert("失敗"); }
+    function updateLoginUI(user) { currentUser = user; const l = document.getElementById('btn-login-nav'), out = document.getElementById('btn-logout-nav'); if (user) { l.classList.add('hidden'); out.classList.remove('hidden'); localStorage.setItem('萌商城_user', JSON.stringify(user)); } else { l.classList.remove('hidden'); out.classList.add('hidden'); localStorage.removeItem('萌商城_user'); } }
+    function logout() { currentUser = null; localStorage.removeItem('萌商城_user'); updateLoginUI(null); showPage('products'); }
+    async function saveF(f, id) { const v = document.getElementById(id).value; const res = await fetch(`${API_URL}/update-profile`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: currentUser.email, [f]: v }) }); if (res.ok) { currentUser[f] = v; alert("完成"); openModal('user-modal'); } }
+    function doLottery() { if(userPoints<20) return alert("積分不足"); userPoints -= 20; alert("抽獎成功"); }
+
+    const saved = localStorage.getItem('萌商城_user'); if (saved) { currentUser = JSON.parse(saved); updateLoginUI(currentUser); } loadProducts();
+</script>
+</body>
+</html>
