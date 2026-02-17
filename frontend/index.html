@@ -184,27 +184,7 @@
     function refreshUser() { if(!user) return; points = Number(user.points); document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio; document.getElementById('u-points').innerText = points; document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
     async function syncUserData(show) { if(!user) return; const res = await fetch(API + "/get-user", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }); if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if(!user.is_profile_updated) { document.getElementById('modal-user').classList.add('active'); document.getElementById('user-card').classList.add('force-mode'); document.getElementById('force-msg').classList.remove('hidden'); document.getElementById('user-title').innerText = "✨ 初始化帳號"; } } }
     async function dailySignin() { if(!user) return; const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) }); if (res.ok) { const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分"); user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); } else { alert("❌ 今天簽過囉！"); } }
-async function playScratch() {
-    if(points < 10) return alert("積分不足 10 點！");
-    const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
-    if(btn.disabled) return;
-    
-    box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); 
-    btn.disabled = true;
-    
-    try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){}
-    const [res, _] = await Promise.all([ 
-        fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), 
-        new Promise(r => setTimeout(r, 2000)) 
-    ]);
-    
-    if(res.ok) { 
-        const d = await res.json(); 
-        box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; 
-        user.points = Number(d.newTotal);
-        localStorage.setItem('始版_user', JSON.stringify(user));
-        refreshUser(); 
-        
+    async function playScratch() { if(points < 10) return alert("積分不足 10 點！"); const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'); if(btn.disabled) return; box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); btn.disabled = true; try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){} const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2000)) ]); if(res.ok) { const d = await res.json(); box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if (d.prizeName.includes("88萬") || d.prizeName.includes("馬王")) { loadWinners(); } } btn.disabled = false; }
     function showDetail(id) { const p = products.find(x => x.id === id); document.getElementById('d-content').innerHTML = `<div style="background:white; padding:20px; border-radius:20px;"><img src="${p.image_url}" style="width:100%; border-radius:15px; max-height:280px; object-fit:cover;"><h2 style="color:var(--p);">${p.name}</h2><p>${p.description || "馬年精選"}</p><b style="font-size:24px;">$${p.price}</b><br><button class="btn" style="margin-top:20px;" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
     function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); refreshUser(); alert("已加入"); }
     async function checkout() { if(cart.length === 0) return; const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email, total: document.getElementById('total').innerText, products: cart.map(i=>`${i.name}x${i.qty}`).join(","), image_url: cart[0].image_url}) }); if (res.ok) { alert("結帳成功！"); cart = []; showPage('products'); syncUserData(false); } }
@@ -220,7 +200,8 @@ async function playScratch() {
     function logout() { user=null; localStorage.removeItem('始版_user'); location.reload(); }
     async function loadWinners() { try { const res = await fetch(API + "/winners"); const d = await res.json(); if(d.length > 0) { document.getElementById('winner-announcement').classList.remove('hidden'); document.getElementById('winner-list').innerHTML = d.map(w => `<div class="winner-msg">🐎 <b>${w.username}</b> 賀：<span>"${w.bio}"</span></div>`).join(''); } } catch(e) {} }
     window.onload = () => { const s = localStorage.getItem('始版_user'); if(s) { user = JSON.parse(s); syncUserData(false); loadWinners(); } else showPage('login'); loadProducts(); };
-
+</script>
+ 
     <style>
     /* [始版美化] 公布欄視覺升級 - 尊爵紅金版 */
     .winner-board { 
@@ -276,8 +257,6 @@ async function playScratch() {
 </style>
 
 <script>
-    /* [始版美化] 公布欄 JavaScript 渲染逻辑覆盖 */
-    // 使用覆蓋式重新定義，確保不影響始版其他 DNA 邏輯
     /* [始版美化] 顯示得主序號與賀詞 */
 async function loadWinners() {
     try {
@@ -295,9 +274,30 @@ async function loadWinners() {
     } catch(e) {}
 }
 
+    
     /* [始版加強] 刮中 88萬 大獎專屬通知邏輯 */
 // 修改原本的 playScratch 邏輯，加入即時通知功能
-
+async function playScratch() {
+    if(points < 10) return alert("積分不足 10 點！");
+    const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
+    if(btn.disabled) return;
+    
+    box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); 
+    btn.disabled = true;
+    
+    try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){}
+    const [res, _] = await Promise.all([ 
+        fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), 
+        new Promise(r => setTimeout(r, 2000)) 
+    ]);
+    
+    if(res.ok) { 
+        const d = await res.json(); 
+        box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; 
+        user.points = Number(d.newTotal);
+        localStorage.setItem('始版_user', JSON.stringify(user));
+        refreshUser(); 
+        
         // [新增功能] 判定是否刮中 88萬，顯示霸氣通知
         if (d.prizeName.includes("88萬") || d.prizeName.includes("馬王")) {
             // 延遲一點點顯示，讓玩家先看到刮開的結果
@@ -314,7 +314,6 @@ async function loadWinners() {
 }
 
 </script>
-    
-</script>
+
 </body>
-</html> 
+</html>
