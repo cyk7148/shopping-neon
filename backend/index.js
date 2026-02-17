@@ -16,23 +16,29 @@ const pool = new Pool({
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// 1. [營運升級] 公告欄 API：只顯示擁有認證標記的蛇王
-app.get('/api/winners', async (req, res) => {
+// 1. [積分系統] 查詢流水帳 API
+app.get('/api/points-history', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id DESC'
-    );
-    res.json(result.rows);
-  } catch (err) { res.status(500).send(); }
+    const r = await pool.query('SELECT * FROM points_history WHERE user_email = $1 ORDER BY created_at DESC LIMIT 50', [req.query.email]);
+    res.json(r.rows);
+  } catch (e) { res.status(500).send(); }
 });
 
-// 2. 同步資料與登入
+// 2. [頂置公告] 馬王公告 API
+app.get('/api/winners', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id DESC');
+    res.json(r.rows);
+  } catch (e) { res.status(500).send(); }
+});
+
+// 3. 用戶登入與資料同步
 app.post('/api/get-user', async (req, res) => {
   try {
-    const r = await pool.query('SELECT username, email, bio, points, is_profile_updated FROM users WHERE email = $1', [req.body.email]);
+    const r = await pool.query('SELECT username, email, bio, points, is_profile_updated, has_won_jackpot FROM users WHERE email = $1', [req.body.email]);
     if (r.rows.length > 0) res.json({ ...r.rows[0], points: Number(r.rows[0].points) });
     else res.status(404).send();
-  } catch (err) { res.status(500).send(); }
+  } catch (e) { res.status(500).send(); }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -49,66 +55,76 @@ app.post('/api/login', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 3. 修改個人資料 (成功後解除強制修改鎖定)
-app.post('/api/update-profile', async (req, res) => {
-  const { email, username, bio, password } = req.body;
+// 4. [積分變動邏輯：每日簽到]
+app.post('/api/daily-signin', async (req, res) => {
+  const { email } = req.body;
   try {
-    if (password) {
-      const hash = await bcrypt.hash(password, 10);
-      await pool.query('UPDATE users SET username=$1, bio=$2, password=$3, is_profile_updated=TRUE WHERE email=$4', [username, bio, hash, email]);
-    } else {
-      await pool.query('UPDATE users SET username=$1, bio=$2, is_profile_updated=TRUE WHERE email=$3', [username, bio, email]);
-    }
-    res.json({ message: "OK" });
+    const result = await pool.query(`UPDATE users SET points = points + 10, last_signin_date = CURRENT_DATE WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [email]);
+    if (result.rowCount > 0) {
+      // 寫入流水帳紀錄
+      await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, 10, $2)', [email, '🐎 馬年開運簽到獎勵']);
+      const up = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
+      res.json({ message: "OK", points: Number(up.rows[0].points) });
+    } else res.status(400).json({ error: "今日已領過紅包" });
   } catch (err) { res.status(500).send(); }
 });
 
-// 4. [邏輯強化] 刮刮樂：中 88 萬時寫入防偽標記
+// 5. [積分變動邏輯：刮刮樂]
 app.post('/api/scratch-win', async (req, res) => {
+  const { email } = req.body;
   try {
-    const u = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
-    if (Number(u.rows[0].points) < 1) return res.status(400).json({ error: "積分不足" });
+    const u = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
+    if (Number(u.rows[0].points) < 1) return res.status(400).json({ error: "開運積分不足" });
     
     const prizes = (await pool.query('SELECT * FROM scratch_prizes')).rows;
     const totalW = prizes.reduce((s, p) => s + p.weight, 0);
     let r = Math.floor(Math.random() * totalW), sel = prizes[0];
     for (const p of prizes) { if (r < p.weight) { sel = p; break; } r -= p.weight; }
     
-    // 如果中大獎，更新 has_won_jackpot
-    if (sel.points_reward === 880000) {
-      await pool.query('UPDATE users SET has_won_jackpot = TRUE WHERE email = $1', [req.body.email]);
+    // 紀錄 A：消耗 1 分
+    await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, -1, $2)', [email, '🧧 參與開運刮刮樂消耗']);
+    
+    if (sel.points_reward > 0) {
+      // 紀錄 B：獲取中獎積分
+      await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, $2, $3)', [email, sel.points_reward, `🧧 刮中獎項：${sel.name}`]);
+      if (sel.points_reward === 880000) await pool.query('UPDATE users SET has_won_jackpot = TRUE WHERE email = $1', [email]);
     }
     
-    await pool.query('UPDATE users SET points = points - 1 + $1 WHERE email = $2', [sel.points_reward, req.body.email]);
-    const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
+    await pool.query('UPDATE users SET points = points - 1 + $1 WHERE email = $2', [sel.points_reward, email]);
+    const up = await pool.query('SELECT points FROM users WHERE email = $1', [email]);
     res.json({ prizeName: sel.name, newTotal: Number(up.rows[0].points) });
   } catch (err) { res.status(500).send(); }
 });
 
-// 5. 其他功能 (簽到、商品、結帳)
-app.post('/api/daily-signin', async (req, res) => {
-  try {
-    const result = await pool.query(`UPDATE users SET points = points + 10, last_signin_date = CURRENT_DATE WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [req.body.email]);
-    if (result.rowCount > 0) {
-      const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
-      res.json({ message: "OK", points: Number(up.rows[0].points) });
-    } else res.status(400).json({ error: "今天已經簽到過了" });
-  } catch (err) { res.status(500).send(); }
-});
-
-app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
-
+// 6. [積分變動邏輯：結帳回饋]
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   try {
-    await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Math.floor(Number(total)), image_url]);
     const reward = Math.floor(Number(total) * 0.01);
-    await pool.query('UPDATE users SET points = points + $1 WHERE email = $2', [reward, email]);
+    await pool.query('INSERT INTO orders (user_email, product_name, total_price, image_url) VALUES ($1,$2,$3,$4)', [email, products, Math.floor(Number(total)), image_url]);
+    
+    if (reward > 0) {
+      // 寫入回饋流水帳
+      await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, $2, $3)', [email, reward, '🐎 馬年購物金 1% 回饋']);
+      await pool.query('UPDATE users SET points = points + $1 WHERE email = $2', [reward, email]);
+    }
     res.json({ message: "OK", reward: reward });
-  } catch (err) { res.status(500).json({ error: "結帳失敗" }); }
+  } catch (e) { res.status(500).send(); }
 });
 
+// 7. 其他基礎 API
+app.post('/api/update-profile', async (req, res) => {
+  const { email, username, bio, password } = req.body;
+  try {
+    if (password) {
+      const hash = await bcrypt.hash(password, 10);
+      await pool.query('UPDATE users SET username=$1, bio=$2, password=$3, is_profile_updated=TRUE WHERE email=$4', [username, bio, hash, email]);
+    } else await pool.query('UPDATE users SET username=$1, bio=$2, is_profile_updated=TRUE WHERE email=$3', [username, bio, email]);
+    res.json({ message: "OK" });
+  } catch (e) { res.status(500).send(); }
+});
+
+app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
 app.get('/api/orders', async (req, res) => { res.json((await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [req.query.email])).rows); });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('Server Ready on port ' + PORT));
+app.listen(process.env.PORT || 3000, () => console.log('Horse Year Server Ready'));
