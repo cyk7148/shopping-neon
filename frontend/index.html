@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>萌商城 - 🧧 始版 (增強修正定稿)</title>
+    <title>萌商城 - 🧧 始版 (馬王公告美化版)</title>
     <style>
         :root { --p: #d32f2f; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --pink-border: #ff8a80; --grey-scratch: #b0b0b0; }
         body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
         
-        /* [始版規範] 32px 漢堡選單 */
+        /* [始版 DNA] 32px 漢堡選單 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         header button { font-size: 32px; border:none; background:none; color:var(--p); cursor:pointer; padding: 5px 10px; display: flex; align-items: center; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
@@ -21,48 +21,60 @@
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* [始版規範] 刮刮樂視覺與標籤一列化 */
+        /* [美化重點] 公告欄視覺升級 */
+        .winner-board { 
+            background: linear-gradient(135deg, #8b0000 0%, #d32f2f 50%, #8b0000 100%); 
+            border: 3px solid var(--gold); margin: 20px; padding: 20px; border-radius: 25px; color: white; 
+            box-shadow: 0 8px 25px rgba(183, 28, 28, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.3);
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .winner-board h4 { 
+            margin: 0 0 15px 0; color: var(--gold); font-size: 20px; font-weight: 900; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5); letter-spacing: 2px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .winner-board h4::before, .winner-board h4::after { content: "🏆"; animation: blink 1.5s infinite; }
+        .winner-msg { 
+            font-size: 15px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
+            padding: 12px 15px; border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255, 215, 0, 0.2);
+            display: flex; align-items: center; gap: 10px; text-align: left;
+        }
+        .winner-msg b { color: var(--gold); font-size: 16px; }
+
+        /* [始版 DNA] 數量加減按鈕與紀錄排版 */
+        .record-item { display: flex; background: #f9f9f9; padding: 12px; border-radius: 15px; margin-bottom: 12px; align-items: center; border: 1px solid #eee; }
+        .record-img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; margin-right: 12px; }
+        .record-info { flex: 1; text-align: left; }
+        .record-amt { font-weight: bold; color: var(--p); margin-left: 10px; }
+        .qty-btn { border: none; width: 26px; height: 26px; border-radius: 50%; background: #eee; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+
+        /* [始版 DNA] 刮刮樂視覺 */
         #modal-scratch .modal-card { background: #d32f2f; border: 4px solid var(--gold); padding: 60px 25px 40px; border-radius: 20px; position: relative; overflow: visible; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4); background-image: radial-gradient(circle at 10% 10%, rgba(183,28,28,0.3) 0%, transparent 20%), radial-gradient(circle at 90% 90%, rgba(183,28,28,0.3) 0%, transparent 20%); }
         #modal-scratch .modal-card::before, #modal-scratch .modal-card::after { content: ""; position: absolute; top: 0; bottom: 0; width: 15px; background: linear-gradient(to right, var(--gold), #ffecb3, var(--gold)); }
-        #modal-scratch .modal-card::before { left: 15px; } #modal-scratch .modal-card::after { right: 15px; }
-        .scratch-header-tag { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: linear-gradient(to bottom, #d32f2f, #b71c1c); border: 3px solid var(--gold); color: var(--gold); padding: 10px 40px; border-radius: 15px; font-size: 28px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); white-space: nowrap; min-width: 180px; text-align: center; }
-        
+        .scratch-header-tag { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: linear-gradient(to bottom, #d32f2f, #b71c1c); border: 3px solid var(--gold); color: var(--gold); padding: 10px 40px; border-radius: 15px; font-size: 28px; font-weight: 900; z-index: 10; white-space: nowrap; min-width: 180px; text-align: center; }
         #prize { height: 150px; display: flex; align-items: center; justify-content: center; background: var(--grey-scratch); border: 6px solid #e57373; font-size: 24px; font-weight: bold; color: #fff; margin: 20px auto; width: 85%; position: relative; z-index: 2; box-shadow: inset 0 0 15px rgba(0,0,0,0.2); }
         #prize.revealed { background: #fffbe6; border: 4px dashed var(--gold); color: #c62828; font-size: 32px; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #scratch-btn { background: #ffeb3b; color: #8f0000; border: none; font-weight: 900; font-size: 20px; padding: 16px; width: 90%; border-radius: 10px; cursor: pointer; position: relative; z-index: 2; box-shadow: 0 6px 0 #fbc02d; transition: 0.1s; }
         .coins-stack { position: absolute; bottom: -15px; right: -10px; z-index: 5; display: flex; align-items: flex-end; }
         .coin-img { width: 70px; height: 50px; background: radial-gradient(circle, #ffeb3b, #fbc02d); border-radius: 10px; border: 2px solid #fbc02d; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #8f0000; font-size: 24px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
 
-        /* [始版規範] 編輯欄位高度對齊 */
-        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .edit-left { display: flex; flex-direction: column; gap: 10px; }
-        .edit-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 45px; }
-        .edit-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 100px; resize: none; }
-
-        /* [修正重點] 面板條目排版修正 */
-        .side-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 25px; box-sizing: border-box; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
-        .record-item { display: flex; background: #f9f9f9; padding: 12px; border-radius: 15px; margin-bottom: 12px; align-items: center; border: 1px solid #eee; }
-        .record-img { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; margin-right: 12px; }
-        .record-info { flex: 1; text-align: left; }
-        .record-amt { font-weight: bold; color: var(--p); margin-left: 10px; }
-
-        /* 數量加減按鈕樣式 */
-        .qty-btn { border: none; width: 26px; height: 26px; border-radius: 50%; background: #eee; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes pop-in { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+        .scratching { animation: shake 0.12s infinite; }
+        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
 
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
         .modal-card { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 380px; position: relative; text-align: center; }
         .close-btn { position: absolute; right: 15px; top: 15px; border: none; background: none; font-size: 24px; cursor: pointer; color: #999; z-index: 10; }
-        .force-mode .close-btn { display: none !important; }
-        .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
         .product-card { background: white; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; }
         .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; }
-
-        @keyframes pop-in { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
-        .scratching { animation: shake 0.12s infinite; }
-        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
+        .hidden { display: none !important; }
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .edit-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 45px; }
+        .edit-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 100px; resize: none; }
     </style>
 </head>
 <body>
@@ -90,7 +102,11 @@
 </div>
 
 <div class="container">
-    <div id="winner-announcement" class="winner-board hidden"><h4>🏆 88萬馬王公告 🏆</h4><div id="winner-list"></div></div>
+    <div id="winner-announcement" class="winner-board hidden">
+        <h4>2026 馬王榮耀公告</h4>
+        <div id="winner-list"></div>
+    </div>
+    
     <div id="page-products" class="grid">載入中...</div>
     <div id="page-detail" class="hidden" style="padding:20px; text-align:center;"><div id="d-content"></div><button class="btn" style="background:#eee; color:#666; margin-top:20px;" onclick="showPage('products')">← 返回商城</button></div>
     
@@ -116,7 +132,6 @@
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;"><span>帳號</span><b id="u-email"></b></div>
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;"><span>暱稱</span><b id="u-name"></b></div>
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;"><span>介紹</span><b id="u-bio"></b></div>
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:10px 0;"><span>密碼</span><b>********</b></div>
         <div style="display:flex; justify-content:space-between; padding:10px 0;"><span>積分</span><div style="display:flex; align-items:center; gap:8px;"><b id="u-points" style="color:orange;">0</b> <button onclick="syncUserData(true)" style="border:none; background:none; color:var(--p);">🔄</button></div></div>
     </div>
     <button class="btn" id="edit-trigger" onclick="toggleEditBox()" style="background:#eee; color:#333;">編輯資料</button>
@@ -138,16 +153,9 @@
     document.getElementById('scratch-btn').addEventListener('click', function(e) { if (e.pointerType !== 'mouse') return; playScratch(); });
 
     // [始版] 商品載入
-    async function loadProducts() {
-        const grid = document.getElementById('page-products');
-        try {
-            const res = await fetch(API + "/products");
-            products = await res.json();
-            grid.innerHTML = products.map(p => `<div class="product-card" onclick="showDetail(${p.id})"><img src="${p.image_url}"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>`).join('');
-        } catch (e) { setTimeout(loadProducts, 3000); }
-    }
+    async function loadProducts() { try { const res = await fetch(API + "/products"); products = await res.json(); document.getElementById('page-products').innerHTML = products.map(p => `<div class="product-card" onclick="showDetail(${p.id})"><img src="${p.image_url}"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>`).join(''); } catch(e) { setTimeout(loadProducts, 3000); } }
 
-    // [始版修正] 購物車數量加減回歸
+    // [始版] 購物車數量加減
     function renderCart() {
         const t = cart.reduce((s, i) => s + (i.price * i.qty), 0);
         document.getElementById('total').innerText = t;
@@ -163,42 +171,43 @@
                     <button onclick="cart.splice(${idx},1);renderCart();refreshUser();" style="border:none; background:none; color:#ccc; margin-left:10px;">✕</button>
                 </div>
             </div>
-        `).join('') || "<p style='text-align:center;'>購物車空空的</p>";
+        `).join('') || "空";
     }
-
     function updateQty(idx, c) { cart[idx].qty += c; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); refreshUser(); }
 
-    // [始版修正] 購買紀錄排版還原
-    async function loadHistory() {
-        const res = await fetch(API + `/orders?email=${user.email}`);
-        const d = await res.json();
-        document.getElementById('h-list').innerHTML = d.map(o => `
-            <div class="record-item">
-                <img src="${o.image_url}" class="record-img">
-                <div class="record-info"><b>${o.product_name}</b><br><small style="color:#999;">${o.order_date.split('T')[0]}</small></div>
-                <span class="record-amt">$${o.total_price}</span>
-            </div>
-        `).join('');
+    // [始版] 紀錄排版
+    async function loadHistory() { const res = await fetch(API + `/orders?email=${user.email}`); const d = await res.json(); document.getElementById('h-list').innerHTML = d.map(o => `<div class="record-item"><img src="${o.image_url}" class="record-img"><div class="record-info"><b>${o.product_name}</b><br><small style="color:#999;">${o.order_date.split('T')[0]}</small></div><span class="record-amt">$${o.total_price}</span></div>`).join(''); }
+
+    // [美化升級] 公告欄加載
+    async function loadWinners() { 
+        try { 
+            const res = await fetch(API + "/winners"); const d = await res.json(); 
+            const board = document.getElementById('winner-announcement');
+            if(d.length > 0) { 
+                board.classList.remove('hidden'); 
+                document.getElementById('winner-list').innerHTML = d.map(w => `<div class="winner-msg">🏅 <b>${w.username}</b> 賀：<span>"${w.bio}"</span></div>`).join(''); 
+            } else { board.classList.add('hidden'); }
+        } catch(e) {} 
     }
 
+    // [始版 DNA] 基礎邏輯
     function refreshUser() { if(!user) return; points = Number(user.points); document.getElementById('u-email').innerText = user.email; document.getElementById('u-name').innerText = user.username; document.getElementById('u-bio').innerText = user.bio; document.getElementById('u-points').innerText = points; document.getElementById('count').innerText = cart.reduce((s,i)=>s+i.qty,0); }
-    async function syncUserData(show) { if(!user) return; const res = await fetch(API + "/get-user", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }); if(res.ok) { user = await res.json(); points = Number(user.points); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if(!user.is_profile_updated) { document.getElementById('modal-user').classList.add('active'); document.getElementById('user-card').classList.add('force-mode'); document.getElementById('force-msg').classList.remove('hidden'); document.getElementById('user-title').innerText = "✨ 初始化帳號"; } } }
-    async function dailySignin() { if(!user) return; const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) }); if (res.ok) { const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分"); user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); } else { alert("❌ 今天簽過囉！"); } }
-    async function playScratch() { if(points < 10) return alert("積分不足 10 點！"); const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'); if(btn.disabled) return; box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); btn.disabled = true; try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){} const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2000)) ]); if(res.ok) { const d = await res.json(); box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if (d.prizeName.includes("88萬") || d.prizeName.includes("馬王")) { loadWinners(); } } btn.disabled = false; }
-    function showDetail(id) { const p = products.find(x => x.id === id); document.getElementById('d-content').innerHTML = `<div style="background:white; padding:20px; border-radius:20px;"><img src="${p.image_url}" style="width:100%; border-radius:15px; max-height:280px; object-fit:cover;"><h2 style="color:var(--p);">${p.name}</h2><p>${p.description || "馬年精選"}</p><b style="font-size:24px;">$${p.price}</b><br><button class="btn" style="margin-top:20px;" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
+    async function syncUserData(show) { if(!user) return; const res = await fetch(API + "/get-user", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }); if(res.ok) { user = await res.json(); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if(!user.is_profile_updated) { document.getElementById('modal-user').classList.add('active'); document.getElementById('user-card').classList.add('force-mode'); document.getElementById('user-title').innerText = "✨ 初始化帳號"; } } }
+    async function dailySignin() { if(!user) return; const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) }); if (res.ok) { const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分"); user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); } }
+    async function playScratch() { if(points < 10) return alert("積分不足 10 點！"); const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn'); if(btn.disabled) return; box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); btn.disabled = true; const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2000)) ]); if(res.ok) { const d = await res.json(); box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); if (d.prizeName.includes("88萬") || d.prizeName.includes("馬王")) { loadWinners(); } } btn.disabled = false; }
+    function showDetail(id) { const p = products.find(x => x.id === id); document.getElementById('d-content').innerHTML = `<div style="background:white; padding:20px; border-radius:20px;"><img src="${p.image_url}" style="width:100%; border-radius:15px; max-height:280px; object-fit:cover;"><h2 style="color:var(--p);">${p.name}</h2><b>$${p.price}</b><br><button class="btn" style="margin-top:20px;" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
     function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); refreshUser(); alert("已加入"); }
     async function checkout() { if(cart.length === 0) return; const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email, total: document.getElementById('total').innerText, products: cart.map(i=>`${i.name}x${i.qty}`).join(","), image_url: cart[0].image_url}) }); if (res.ok) { alert("結帳成功！"); cart = []; showPage('products'); syncUserData(false); } }
-    function showPage(p) { if(user && !user.is_profile_updated) { openM('user'); return; } document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); if(document.getElementById('menu').classList.contains('active')) toggleM(); }
+    function showPage(p) { document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); if(document.getElementById('menu').classList.contains('active')) toggleM(); }
     function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
     function togglePanel(id) { const p = document.getElementById(id + '-panel'); const isActive = p.style.right === '0px'; p.style.right = isActive ? '-100%' : '0px'; if (!isActive) { if (id === 'history') loadHistory(); if (id === 'points') loadPointsHistory(); toggleM(); } }
     async function loadPointsHistory() { const d = await (await fetch(API + `/points-history?email=${user.email}`)).json(); document.getElementById('points-list').innerHTML = d.map(i => `<div class="record-item" style="border:none;"><div class="record-info"><b>${i.reason}</b><br><small>${i.created_at.substring(0,16)}</small></div><div style="font-weight:bold; color:${i.change_amount>=0?'#2e7d32':'var(--red)'}">${i.change_amount>=0?'+':''}${i.change_amount}</div></div>`).join(''); }
     async function login() { const res = await fetch(API + "/login", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:document.getElementById('l-email').value.trim(), password:document.getElementById('l-pass').value}) }); if(res.ok) { user = await res.json(); localStorage.setItem('始版_user', JSON.stringify(user)); showPage('products'); syncUserData(false); loadWinners(); } }
-    async function updateProfile() { const n = document.getElementById('n-name').value.trim(), b = document.getElementById('n-bio').value.trim(); if (!n || !b) return alert("❌ 始版規定：名字與介紹不可為空！"); const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:n, bio:b, password:document.getElementById('n-pass').value}) }); if(res.ok) location.reload(); }
+    async function updateProfile() { const n = document.getElementById('n-name').value.trim(), b = document.getElementById('n-bio').value.trim(); if (!n || !b) return alert("❌ 名字與介紹不可為空！"); const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:n, bio:b, password:document.getElementById('n-pass').value}) }); if(res.ok) location.reload(); }
     function openM(id) { if(!user) return; if(id === 'signin') { dailySignin(); return; } toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); }
-    function closeAll() { if(user && !user.is_profile_updated) return; document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+    function closeAll() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
     function toggleEditBox() { document.getElementById('edit-box').classList.toggle('hidden'); document.getElementById('profile-view').classList.toggle('hidden'); }
     function logout() { user=null; localStorage.removeItem('始版_user'); location.reload(); }
-    async function loadWinners() { try { const res = await fetch(API + "/winners"); const d = await res.json(); if(d.length > 0) { document.getElementById('winner-announcement').classList.remove('hidden'); document.getElementById('winner-list').innerHTML = d.map(w => `<div class="winner-msg">🐎 <b>${w.username}</b> 賀：<span>"${w.bio}"</span></div>`).join(''); } } catch(e) {} }
     window.onload = () => { const s = localStorage.getItem('始版_user'); if(s) { user = JSON.parse(s); syncUserData(false); loadWinners(); } else showPage('login'); loadProducts(); };
 </script>
 </body>
