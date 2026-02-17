@@ -210,5 +210,84 @@
     function logout() { user=null; localStorage.removeItem('始版_user'); location.reload(); }
     window.onload = () => { const s = localStorage.getItem('始版_user'); if(s) { user = JSON.parse(s); syncUserData(false); loadWinners(); } else showPage('login'); loadProducts(); };
 </script>
+<style>
+    /* [始版美化] 公布欄視覺升級 - 尊爵紅金版 */
+    .winner-board { 
+        background: linear-gradient(135deg, #8b0000 0%, #d32f2f 50%, #8b0000 100%) !important; 
+        border: 3px solid var(--gold) !important; 
+        margin: 20px !important; 
+        padding: 20px !important; 
+        border-radius: 25px !important; 
+        color: white !important; 
+        box-shadow: 0 8px 25px rgba(183, 28, 28, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.3) !important;
+        text-align: center !important; 
+        position: relative !important; 
+        overflow: hidden !important;
+    }
+
+    /* 標題加強閃爍效果 */
+    .winner-board h4 { 
+        margin: 0 0 15px 0 !important; 
+        color: var(--gold) !important; 
+        font-size: 20px !important; 
+        font-weight: 900 !important; 
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5) !important; 
+        letter-spacing: 2px !important;
+        display: flex !important; 
+        align-items: center !important; 
+        justify-content: center !important; 
+        gap: 10px !important;
+    }
+    /* 加入✨閃爍符號 */
+    .winner-board h4::before, .winner-board h4::after { content: "✨"; animation: blink-gold 1.5s infinite; }
+
+    /* 玻璃質感訊息條 */
+    .winner-msg { 
+        font-size: 15px !important; 
+        background: rgba(255, 255, 255, 0.1) !important; 
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
+        padding: 12px 15px !important; 
+        border-radius: 15px !important; 
+        margin-bottom: 10px !important; 
+        border: 1px solid rgba(255, 215, 0, 0.2) !important;
+        display: flex !important; 
+        align-items: center !important; 
+        gap: 10px !important; 
+        text-align: left !important;
+    }
+    /* 得主名字呈現金色 */
+    .winner-msg b { color: var(--gold) !important; font-size: 16px !important; }
+    .winner-msg span { opacity: 0.9 !important; font-style: italic !important; }
+
+    /* 閃爍動畫定義 */
+    @keyframes blink-gold { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } }
+</style>
+
+<script>
+    /* [始版美化] 公布欄 JavaScript 渲染逻辑覆盖 */
+    // 使用覆蓋式重新定義，確保不影響始版其他 DNA 邏輯
+    async function loadWinners() { 
+        try { 
+            const res = await fetch(API + "/winners"); 
+            const d = await res.json(); 
+            const board = document.getElementById('winner-announcement');
+            const list = document.getElementById('winner-list');
+            
+            if(d.length > 0) { 
+                board.classList.remove('hidden'); 
+                // 升級圖標為獎盃 🏅 並維持始版賀詞結構
+                list.innerHTML = d.map(w => `
+                    <div class="winner-msg">
+                        🏅 <b>${w.username}</b> 賀：<span>"${w.bio}"</span>
+                    </div>
+                `).join(''); 
+            } else {
+                board.classList.add('hidden');
+            }
+        } catch(e) { console.error("馬王公告載入異常，始版防護機制啟動"); } 
+    }
+</script>
+
 </body>
 </html>
