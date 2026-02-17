@@ -23,7 +23,7 @@ app.get('/api/points-history', async (req, res) => {
   } catch (e) { res.status(500).send(); }
 });
 
-// 2. 馬王公告 API
+// 2. 獲取馬王公告得主
 app.get('/api/winners', async (req, res) => {
   try {
     const r = await pool.query('SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id DESC');
@@ -54,7 +54,7 @@ app.post('/api/get-user', async (req, res) => {
   } catch (e) { res.status(500).send(); }
 });
 
-// 4. 修改資料 (含密碼修改邏輯)
+// 4. 修改資料 (解除初始化鎖定)
 app.post('/api/update-profile', async (req, res) => {
   const { email, username, bio, password } = req.body;
   try {
@@ -71,14 +71,14 @@ app.post('/api/daily-signin', async (req, res) => {
   try {
     const result = await pool.query(`UPDATE users SET points = points + 10, last_signin_date = CURRENT_DATE WHERE email = $1 AND (last_signin_date IS NULL OR last_signin_date < CURRENT_DATE)`, [req.body.email]);
     if (result.rowCount > 0) {
-      await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, 10, $2)', [req.body.email, '🐎 馬年每日簽到']);
+      await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, 10, $2)', [req.body.email, '🐎 馬年簽到獎勵']);
       const up = await pool.query('SELECT points FROM users WHERE email = $1', [req.body.email]);
       res.json({ message: "OK", points: Number(up.rows[0].points) });
     } else res.status(400).json({ error: "今天領過囉" });
   } catch (err) { res.status(500).send(); }
 });
 
-// 6. 刮刮樂 (加入紀錄)
+// 6. 刮刮樂 (紀錄消耗與中獎)
 app.post('/api/scratch-win', async (req, res) => {
   const { email } = req.body;
   try {
@@ -99,7 +99,7 @@ app.post('/api/scratch-win', async (req, res) => {
   } catch (err) { res.status(500).send(); }
 });
 
-// 7. 結帳 (加入紀錄)
+// 7. 結帳 (加入回饋紀錄)
 app.post('/api/checkout', async (req, res) => {
   const { email, products, total, image_url } = req.body;
   try {
@@ -116,4 +116,4 @@ app.post('/api/checkout', async (req, res) => {
 app.get('/api/products', async (req, res) => { res.json((await pool.query('SELECT * FROM products ORDER BY id ASC')).rows); });
 app.get('/api/orders', async (req, res) => { res.json((await pool.query('SELECT * FROM orders WHERE user_email = $1 ORDER BY order_date DESC', [req.query.email])).rows); });
 
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 3000, () => console.log('Horse Year Ready'));
