@@ -80,20 +80,20 @@ app.post('/api/checkout', async (req, res) => {
     } catch (e) { res.status(500).send("結帳失敗"); }
 });
 
-// [始版定稿] 公告欄 API：鎖定由早到晚升序排列
+/* [始版修復] 公告欄排序：由早排到晚 (ASC) */
 app.get('/api/winners', async (req, res) => {
     try {
-        // 使用 ORDER BY id ASC 確保依據「中獎順序」排列
-        // 最早產生的 id 會在最上方，絕不因名字長短跑位
+        // 強制使用 id 升序排列，確保最早中獎者(id最小)排在最上面
         const result = await pool.query(
             'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC'
         );
         res.json(result.rows);
     } catch (e) {
-        console.error("公告排序修正失敗");
-        res.status(500).send("系統忙碌中");
+        console.error("公告排序異常");
+        res.status(500).send("Error");
     }
 });
+
 
 
 // 5. 使用者管理與驗證
