@@ -6,29 +6,22 @@
     <title>萌商城 - 🧧 始版 (馬年營運正式定稿)</title>
     <style>
         :root { --p: #d32f2f; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --pink-border: #ff8a80; --grey-scratch: #b0b0b0; }
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
         
-        /* [核心修正] 全域禁止雙擊縮放行為 */
-        body { 
-            font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden;
-            -webkit-user-select: none; user-select: none; 
-            touch-action: manipulation; /* 解決連點縮放問題的核心 */
-        }
-        
-        /* [Header] 放大漢堡選單按鈕 (始版 32px) */
+        /* Header：32px 漢堡按鈕 */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
-        header button { font-size: 32px; border:none; background:none; color:var(--p); cursor:pointer; padding: 5px 10px; display: flex; align-items: center; touch-action: manipulation; }
+        header button { font-size: 32px; border:none; background:none; color:var(--p); cursor:pointer; padding: 5px 10px; display: flex; align-items: center; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
         
-        /* [側邊選單] */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; }
         .drawer.active { left: 0; }
-        .drawer-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; color: #333; font-weight: 500; display: flex; align-items: center; touch-action: manipulation; }
+        .drawer-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; color: #333; font-weight: 500; display: flex; align-items: center; }
         .menu-icon { width: 30px; height: 30px; background: var(--p); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 16px; box-shadow: 0 2px 5px rgba(211,47,47,0.3); }
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* [霸氣刮刮樂] 始版規範：無中槓、新年好運一列化 */
+        /* 霸氣刮刮樂：新年好運一列化 */
         #modal-scratch .modal-card { 
             background: #d32f2f; border: 4px solid var(--gold); padding: 60px 25px 40px; border-radius: 20px; position: relative; overflow: visible;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
@@ -37,28 +30,24 @@
         #modal-scratch .modal-card::before, #modal-scratch .modal-card::after { content: ""; position: absolute; top: 0; bottom: 0; width: 15px; background: linear-gradient(to right, var(--gold), #ffecb3, var(--gold)); }
         #modal-scratch .modal-card::before { left: 15px; } #modal-scratch .modal-card::after { right: 15px; }
         .scratch-header-tag { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: linear-gradient(to bottom, #d32f2f, #b71c1c); border: 3px solid var(--gold); color: var(--gold); padding: 10px 40px; border-radius: 15px; font-size: 28px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); white-space: nowrap; min-width: 180px; text-align: center; }
-        
         #prize { height: 150px; display: flex; align-items: center; justify-content: center; background: var(--grey-scratch); border: 6px solid #e57373; font-size: 24px; font-weight: bold; color: #fff; margin: 20px auto; width: 85%; position: relative; z-index: 2; box-shadow: inset 0 0 15px rgba(0,0,0,0.2); }
         #prize.revealed { background: #fffbe6; border: 4px dashed var(--gold); color: #c62828; font-size: 32px; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        /* [核心修正] 刮刮樂按鈕防連點縮放 */
-        #scratch-btn { 
-            background: #ffeb3b; color: #8f0000; border: none; font-weight: 900; font-size: 20px; padding: 16px; width: 90%; border-radius: 10px; cursor: pointer; position: relative; z-index: 2; 
-            box-shadow: 0 6px 0 #fbc02d; transition: 0.1s; 
-            touch-action: manipulation; /* 禁止縮放 */
-        }
-        #scratch-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #fbc02d; }
+        #scratch-btn { background: #ffeb3b; color: #8f0000; border: none; font-weight: 900; font-size: 20px; padding: 16px; width: 90%; border-radius: 10px; cursor: pointer; position: relative; z-index: 2; box-shadow: 0 6px 0 #fbc02d; transition: 0.1s; }
         .coins-stack { position: absolute; bottom: -15px; right: -10px; z-index: 5; display: flex; align-items: flex-end; }
         .coin-img { width: 70px; height: 50px; background: radial-gradient(circle, #ffeb3b, #fbc02d); border-radius: 10px; border: 2px solid #fbc02d; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #8f0000; font-size: 24px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
 
-        /* [編輯欄位對齊] */
+        /* 編輯欄位：高度對齊 */
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .edit-left { display: flex; flex-direction: column; gap: 10px; }
         .edit-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 45px; }
         .edit-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 100px; resize: none; }
 
-        /* 通用組件 */
-        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; touch-action: manipulation; }
+        .side-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 25px; box-sizing: border-box; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
+        .h-item { display: flex; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 12px; align-items: center; border: 1px solid #eee; }
+        .h-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-right: 12px; }
+        .amt-pos { color: #2e7d32; font-weight: 900; }
+        .amt-neg { color: var(--red); font-weight: 900; }
+        .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
         .modal-card { background: white; padding: 30px; border-radius: 30px; width: 90%; max-width: 380px; position: relative; text-align: center; }
@@ -66,16 +55,11 @@
         .force-mode .close-btn { display: none !important; }
         .hidden { display: none !important; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 20px; }
-        .product-card { background: white; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; touch-action: manipulation; }
+        .product-card { background: white; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; }
         .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; }
-        
-        .winner-board { background: linear-gradient(135deg, #b71c1c, #d32f2f); border: 2px solid var(--gold); margin: 15px; padding: 15px; border-radius: 15px; color: white; box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4); }
-        .winner-board h4 { margin: 0 0 10px 0; color: var(--gold); text-align: center; font-size: 18px; }
-        .winner-msg { font-size: 14px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--gold); text-align: left; }
 
-        @keyframes pop-in { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
-        .scratching { animation: shake 0.12s infinite; }
-        @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
+        .winner-board { background: linear-gradient(135deg, #b71c1c, #d32f2f); border: 2px solid var(--gold); margin: 15px; padding: 15px; border-radius: 15px; color: white; box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4); }
+        .winner-msg { font-size: 14px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--gold); text-align: left; }
     </style>
 </head>
 <body>
@@ -131,7 +115,7 @@
     </div>
     <button class="btn" id="edit-trigger" onclick="toggleEditBox()" style="background:#eee; color:#333;">編輯資料</button>
     <div id="edit-box" class="hidden" style="margin-top:20px; text-align:left;">
-        <p id="force-msg" class="hidden" style="color:var(--red); font-weight:bold; text-align:center;">🎉 歡迎！請先完成資料初始化</p>
+        <p id="force-msg" class="hidden" style="color:var(--red); font-weight:bold; text-align:center;">🎉 請先完成資料初始化</p>
         <div class="edit-grid">
             <div class="edit-left">
                 <input id="n-name" placeholder="新暱稱" class="edit-input">
@@ -151,16 +135,17 @@
 <script>
     const API = "/api"; let products = [], cart = [], user = null, points = 0, isRegMode = false;
     
-    // [始版修復：商品載入]
+    // [始版修復：商品載入重試機制]
     async function loadProducts() {
         const grid = document.getElementById('page-products');
         grid.innerText = "正在策馬載入商品...";
         try {
             const res = await fetch(API + "/products");
+            if (!res.ok) throw new Error();
             products = await res.json();
             grid.innerHTML = products.map(p => `<div class="product-card" onclick="showDetail(${p.id})"><img src="${p.image_url}"><h3>${p.name}</h3><b style="color:var(--p);">$${p.price}</b></div>`).join('');
         } catch (e) {
-            grid.innerHTML = `<p style='color:red;'>載入失敗！正在重連...</p>`;
+            grid.innerHTML = `<p style='color:red;'>載入失敗！重連中...</p>`;
             setTimeout(loadProducts, 3000);
         }
     }
@@ -188,11 +173,18 @@
         } 
     }
 
+    async function dailySignin() {
+        if(!user) return;
+        const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) });
+        if (res.ok) { const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分"); user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); }
+        else { const d = await res.json(); alert("❌ " + ((await d.json()).error || "失敗")); }
+    }
+
     async function playScratch() {
         if(points < 10) return alert("積分不足 10 點！");
         const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
         if(btn.disabled) return;
-        box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); btn.disabled = true;
+        box.className = ""; box.innerText = "努力刮開中..."; box.classList.add('scratching'); btn.disabled = true;
         try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){}
         const [res, _] = await Promise.all([ fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), new Promise(r => setTimeout(r, 2000)) ]);
         if(res.ok) { 
@@ -204,19 +196,12 @@
         btn.disabled = false;
     }
 
-    // 詳情頁、購物車、紀錄
+    // 詳情、購物車與紀錄 100% 始版規範
     function showDetail(id) { const p = products.find(x => x.id === id); document.getElementById('d-content').innerHTML = `<div style="background:white; padding:20px; border-radius:20px;"><img src="${p.image_url}" style="width:100%; border-radius:15px; max-height:280px; object-fit:cover;"><h2 style="color:var(--p);">${p.name}</h2><p>${p.description || "馬年精選"}</p><b style="font-size:24px;">$${p.price}</b><button class="btn" style="margin-top:20px;" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
     function renderCart() { const t = cart.reduce((s, i) => s + (i.price * i.qty), 0); document.getElementById('total').innerText = t; document.getElementById('reward').innerText = Math.floor(t * 0.01); document.getElementById('c-items').innerHTML = cart.map((i, idx) => `<div class="h-item" style="background:white; margin-bottom:10px;"><img src="${i.image_url}" class="h-img"><div class="h-info"><b>${i.name}</b><br><span style="color:var(--p);">$${i.price}</span></div><div style="display:flex; align-items:center; gap:8px;"><button onclick="updateQty(${idx},-1)" style="border:none; width:25px; height:25px; border-radius:50%; background:#eee;">-</button><span>${i.qty}</span><button onclick="updateQty(${idx},1)" style="border:none; width:25px; height:25px; border-radius:50%; background:#eee;">+</button><button onclick="cart.splice(${idx},1);renderCart();refreshUser();" style="border:none; background:none; color:#ccc; margin-left:10px;">✕</button></div></div>`).join('') || "<p>空</p>"; }
     function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); refreshUser(); alert("已加入"); }
     function updateQty(idx, c) { cart[idx].qty += c; if(cart[idx].qty<=0) cart.splice(idx,1); renderCart(); refreshUser(); }
     async function checkout() { if(cart.length === 0) return; const res = await fetch(API + "/checkout", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email, total: document.getElementById('total').innerText, products: cart.map(i=>`${i.name}x${i.qty}`).join(","), image_url: cart[0].image_url}) }); if (res.ok) { const d = await res.json(); alert("結帳成功！"); cart = []; user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); showPage('products'); syncUserData(false); } }
-
-    async function dailySignin() {
-        if(!user) return;
-        const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) });
-        if (res.ok) { const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分"); user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); }
-        else { const d = await res.json(); alert("❌ " + (d.error || "簽到失敗")); }
-    }
 
     function showPage(p) { if(user && !user.is_profile_updated) { openM('user'); return; } document.querySelectorAll('.container > div').forEach(d => d.classList.add('hidden')); document.getElementById('page-'+p).classList.remove('hidden'); if(p==='cart') renderCart(); if(document.getElementById('menu').classList.contains('active')) toggleM(); }
     function toggleM() { document.getElementById('menu').classList.toggle('active'); document.getElementById('mask').classList.toggle('active'); }
@@ -224,12 +209,12 @@
     async function loadHistory() { const d = await (await fetch(API + `/orders?email=${user.email}`)).json(); document.getElementById('h-list').innerHTML = d.map(o => `<div class="h-item"><img src="${o.image_url}" class="h-img"><div class="h-info"><b>${o.product_name}</b><br><small>${o.order_date.split('T')[0]}</small></div><span>$${o.total_price}</span></div>`).join(''); }
     async function loadPointsHistory() { const d = await (await fetch(API + `/points-history?email=${user.email}`)).json(); document.getElementById('points-list').innerHTML = d.map(i => `<div class="h-item" style="border:none;"><div class="h-info"><div style="font-weight:bold;">${i.reason}</div><small>${i.created_at.substring(0,16)}</small></div><div class="${i.change_amount >= 0 ? 'amt-pos' : 'amt-neg'}">${i.change_amount >= 0 ? '+' : ''}${i.change_amount}</div></div>`).join(''); }
     async function login() { const res = await fetch(API + "/login", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:document.getElementById('l-email').value, password:document.getElementById('l-pass').value}) }); if(res.ok) { user = await res.json(); localStorage.setItem('始版_user', JSON.stringify(user)); showPage('products'); syncUserData(false); loadWinners(); } }
-    async function updateProfile() { const nName = document.getElementById('n-name').value.trim(), nBio = document.getElementById('n-bio').value.trim(); if (!nName || !nBio) return alert("❌ 名字與介紹不可為空！"); const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:nName, bio:nBio, password:document.getElementById('n-pass').value}) }); if(res.ok) location.reload(); }
+    async function updateProfile() { const nName = document.getElementById('n-name').value.trim(); const nBio = document.getElementById('n-bio').value.trim(); if (!nName || !nBio) return alert("❌ 名字與介紹內容不可為空！"); const res = await fetch(API + "/update-profile", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email, username:nName, bio:nBio, password:document.getElementById('n-pass').value}) }); if(res.ok) location.reload(); }
     function openM(id) { if(!user) return; if(id === 'signin') { dailySignin(); return; } toggleM(); document.getElementById('modal-'+id).classList.add('active'); if(id==='user') syncUserData(false); }
     function closeAll() { if(user && !user.is_profile_updated) return; document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
     function toggleEditBox() { document.getElementById('edit-box').classList.toggle('hidden'); document.getElementById('profile-view').classList.toggle('hidden'); }
     function logout() { user=null; localStorage.removeItem('始版_user'); location.reload(); }
-    async function loadWinners() { try { const res = await fetch(API + "/winners"); const d = await res.json(); const board = document.getElementById('winner-announcement'); if(d.length > 0) { board.classList.remove('hidden'); document.getElementById('winner-list').innerHTML = d.map(w => `<div class="winner-msg">🐎 <b>${w.username}</b> 得主賀：<span>"${w.bio}"</span></div>`).join(''); } else board.classList.add('hidden'); } catch(e) {} }
+    async function loadWinners() { try { const res = await fetch(API + "/winners"); const d = await res.json(); if(d.length > 0) { document.getElementById('winner-announcement').classList.remove('hidden'); document.getElementById('winner-list').innerHTML = d.map(w => `<div class="winner-msg">🐎 <b>${w.username}</b> 得主賀：<span>"${w.bio}"</span></div>`).join(''); } } catch(e) {} }
     window.onload = () => { const s = localStorage.getItem('始版_user'); if(s) { user = JSON.parse(s); syncUserData(false); loadWinners(); } else showPage('login'); loadProducts(); };
 </script>
 </body>
