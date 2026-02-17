@@ -259,26 +259,23 @@
     /* [始版美化] 公布欄 JavaScript 渲染逻辑覆盖 */
     // 使用覆蓋式重新定義，確保不影響始版其他 DNA 邏輯
     /* [始版美化] 公告欄渲染：加入中獎序號顯示 */
-async function loadWinners() { 
-    try { 
-        const res = await fetch(API + "/winners"); 
-        const d = await res.json(); 
-        const board = document.getElementById('winner-announcement');
+/* [始版美化] 公告欄：讀取資料庫專屬序號 */
+async function loadWinners() {
+    try {
+        const res = await fetch(API + "/winners");
+        const d = await res.json();
         const list = document.getElementById('winner-list');
-        
-        if(d.length > 0) { 
-            board.classList.remove('hidden'); 
-            // 顯示格式：第 N 位馬王
+        if(d.length > 0) {
+            document.getElementById('winner-announcement').classList.remove('hidden');
             list.innerHTML = d.map(w => `
                 <div class="winner-msg">
                     🏅 <b>No.${w.winner_no} ${w.username}</b> 賀：<span>"${w.bio}"</span>
                 </div>
-            `).join(''); 
-        } else {
-            board.classList.add('hidden');
+            `).join('');
         }
-    } catch(e) {} 
+    } catch(e) {}
 }
+
 
     /* [始版加強] 刮中 88萬 大獎專屬通知邏輯 */
 // 修改原本的 playScratch 邏輯，加入即時通知功能
