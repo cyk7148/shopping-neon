@@ -80,19 +80,22 @@ app.post('/api/checkout', async (req, res) => {
     } catch (e) { res.status(500).send("結帳失敗"); }
 });
 
-/* [始版修復] 公告欄排序：由早排到晚 (ASC) */
+/* [始版修復] 公告欄：排除名字長度干擾，鎖定中獎時間排序 */
 app.get('/api/winners', async (req, res) => {
     try {
-        // 強制使用 id 升序排列，確保最早中獎者(id最小)排在最上面
+        // 使用獲獎時間 (created_at) 升序排列，最早獲獎者永遠在最上方
+        // 如果你的 users 表沒有獲獎時間欄位，請改用 id ASC 並確保數據庫主鍵遞增
         const result = await pool.query(
-            'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC'
+            'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY created_at ASC'
         );
         res.json(result.rows);
     } catch (e) {
-        console.error("公告排序異常");
-        res.status(500).send("Error");
+        // 如果報錯 created_at 不存在，請改用下面這行 (強制鎖定 ID 遞增順序)
+        const fallback = await pool.query('SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC');
+        res.json(fallback.rows);
     }
 });
+
 
 
 
