@@ -278,6 +278,44 @@
             }
         } catch(e) { console.error("馬王公告載入異常，始版防護機制啟動"); } 
     }
+    /* [始版加強] 刮中 88萬 大獎專屬通知邏輯 */
+// 修改原本的 playScratch 邏輯，加入即時通知功能
+async function playScratch() {
+    if(points < 10) return alert("積分不足 10 點！");
+    const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
+    if(btn.disabled) return;
+    
+    box.className = ""; box.innerText = "開運刮刮中..."; box.classList.add('scratching'); 
+    btn.disabled = true;
+    
+    try{document.getElementById('s-scratch').currentTime=0;document.getElementById('s-scratch').play();}catch(e){}
+    const [res, _] = await Promise.all([ 
+        fetch(API + "/scratch-win", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:user.email}) }), 
+        new Promise(r => setTimeout(r, 2000)) 
+    ]);
+    
+    if(res.ok) { 
+        const d = await res.json(); 
+        box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; 
+        user.points = Number(d.newTotal);
+        localStorage.setItem('始版_user', JSON.stringify(user));
+        refreshUser(); 
+        
+        // [新增功能] 判定是否刮中 88萬，顯示霸氣通知
+        if (d.prizeName.includes("88萬") || d.prizeName.includes("馬王")) {
+            // 延遲一點點顯示，讓玩家先看到刮開的結果
+            setTimeout(() => {
+                alert("🎊🎊🎊 震驚全場！ 🎊🎊🎊\n\n恭喜您獲得【🧧 終極馬王賞 (+88萬)】！\n您的大名已永久登錄在馬王榮耀公告欄！");
+                loadWinners(); // 同時重新載入美化後的公告欄
+            }, 500);
+            try{document.getElementById('s-win').play();}catch(e){}
+        } else {
+            // 一般中獎或銘謝惠顧不跳大彈窗，維持始版流暢感
+        }
+    }
+    btn.disabled = false;
+}
+
 </script>
 
 </body>
