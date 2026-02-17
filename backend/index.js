@@ -56,7 +56,17 @@ app.post('/api/scratch-win', async (req, res) => {
         if (sel.points_reward > 0) {
             await pool.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, $2, $3)', [email, sel.points_reward, `🧧 刮中獎項：${sel.name}`]);
             // 判定是否為 88 萬大獎，標記為馬王得主
-            if (sel.points_reward >= 880000) await pool.query('UPDATE users SET has_won_jackpot = TRUE WHERE email = $1', [email]);
+            // 在刮中 88 萬的邏輯區塊內修改
+if (sel.points_reward >= 880000) {
+    // 獲取當前總馬王數，決定下一位是幾號
+    const countRes = await pool.query('SELECT COUNT(*) FROM users WHERE has_won_jackpot = TRUE');
+    const nextNo = parseInt(countRes.rows[0].count) + 1;
+    
+    await pool.query(
+        'UPDATE users SET has_won_jackpot = TRUE, winner_no = $1 WHERE email = $2', 
+        [nextNo, email]
+    );
+}
         }
         
         await pool.query('UPDATE users SET points = points - 10 + $1 WHERE email = $2', [sel.points_reward, email]);
@@ -80,26 +90,19 @@ app.post('/api/checkout', async (req, res) => {
     } catch (e) { res.status(500).send("結帳失敗"); }
 });
 
-/* [始版修正] 公告欄：加入遞增序號並強制物理排序 */
+
+
+// 修改公告欄 API：絕對鎖定 winner_no 排序
 app.get('/api/winners', async (req, res) => {
     try {
-        // 1. 先從資料庫撈出所有馬王，按 id 升序排列 (最早的在前面)
+        // 依照 winner_no 由小到大排，No.1 永遠在頂部
         const result = await pool.query(
-            'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC'
+            'SELECT username, bio, winner_no FROM users WHERE has_won_jackpot = TRUE ORDER BY winner_no ASC'
         );
-        
-        // 2. 透過 map 自動加上中獎序號，從 1 開始標到大
-        const winnersWithNo = result.rows.map((w, index) => ({
-            ...w,
-            winner_no: index + 1
-        }));
-        
-        res.json(winnersWithNo);
-    } catch (e) {
-        console.error("公告序號處理異常");
-        res.status(500).send("Error");
-    }
+        res.json(result.rows);
+    } catch (e) { res.status(500).send("Error"); }
 });
+
 
 
 
