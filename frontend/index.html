@@ -1,68 +1,198 @@
-const express = require('express');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
-
-// [核心] 刮刮樂：全服保底 100 抽機制
-app.post('/api/scratch-win', async (req, res) => {
-    const { email } = req.body;
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        // A. 全域計數 +1
-        const gRes = await client.query('UPDATE global_settings SET value = value + 1 WHERE key = $1 RETURNING value', ['total_scratches']);
-        const count = gRes.rows[0].value;
-
-        const uRes = await client.query('SELECT points, winner_no FROM users WHERE email = $1', [email]);
-        if (Number(uRes.rows[0].points) < 10) throw new Error("POINTS_INSUFFICIENT");
-
-        let sel;
-        // B. 保底判定 (每 100 抽)
-        if (count % 100 === 0) {
-            sel = (await client.query('SELECT * FROM scratch_prizes WHERE points_reward >= 880000 LIMIT 1')).rows[0];
-        } else {
-            const prizes = (await client.query('SELECT * FROM scratch_prizes')).rows;
-            const totalW = prizes.reduce((s, p) => s + p.weight, 0);
-            let r = Math.floor(Math.random() * totalW);
-            sel = prizes[0];
-            for (const p of prizes) { if (r < p.weight) { sel = p; break; } r -= p.weight; }
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>萌商城 - 2026 馬年營運版</title>
+    
+    <style>
+        :root {
+            --primary-gold: #d4af37;
+            --noble-red: #800000;
+            --glass: rgba(255, 255, 255, 0.8);
         }
 
-        // C. 一人一號物理序號鎖定
-        let winNo = uRes.rows[0].winner_no;
-        if (sel.points_reward >= 880000 && !winNo) {
-            const maxRes = await client.query('SELECT MAX(winner_no) as max_no FROM users');
-            winNo = (parseInt(maxRes.rows[0].max_no) || 0) + 1;
-            await client.query('UPDATE users SET has_won_jackpot = TRUE, winner_no = $1 WHERE email = $2', [winNo, email]);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 0; background: #f4f4f4;
+            -webkit-tap-highlight-color: transparent; /* 移除手機點擊藍框 */
         }
 
-        await client.query('UPDATE users SET points = points - 10 + $1 WHERE email = $2', [sel.points_reward, email]);
-        await client.query('INSERT INTO points_history (user_email, change_amount, reason) VALUES ($1, -10, $2)', [email, `全服第 ${count} 抽`]);
-        await client.query('COMMIT');
+        /* [始版 DNA] 32px 漢堡選單按鈕 */
+        .menu-btn {
+            width: 32px; height: 32px;
+            padding: 10px; cursor: pointer;
+            position: fixed; top: 10px; left: 10px; z-index: 1000;
+            background: var(--glass); border-radius: 8px;
+        }
 
-        res.json({ prizeName: sel.name, newTotal: (Number(uRes.rows[0].points) - 10 + sel.points_reward), winnerNo: winNo, globalCount: count });
-    } catch (e) {
-        await client.query('ROLLBACK');
-        res.status(400).send(e.message);
-    } finally { client.release(); }
-});
+        /* 全服即時同步面板 */
+        .sync-panel {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+            border: 2px solid var(--primary-gold);
+            border-radius: 12px; margin: 60px 15px 15px;
+            padding: 20px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-// 公告欄：由早排到晚 (ASC)
-app.get('/api/winners', async (req, res) => {
-    const r = await pool.query('SELECT username, bio, winner_no FROM users WHERE has_won_jackpot = TRUE ORDER BY winner_no ASC');
-    res.json(r.rows);
-});
+        #global-count-display { margin: 0; color: var(--noble-red); font-size: 24px; }
+        #jackpot-hint { color: #ff4500; font-weight: bold; margin-top: 8px; }
 
-// 全服數據同步介面
-app.get('/api/global-stats', async (req, res) => {
-    const r = await pool.query('SELECT value FROM global_settings WHERE key = $1', ['total_scratches']);
-    res.json({ total: r.rows[0].value });
-});
+        /* [始版 DNA] 紅金漸層馬王公告欄 */
+        #winner-announcement {
+            margin: 15px; border-radius: 12px; overflow: hidden;
+            background: linear-gradient(45deg, #800000, #b22222);
+            box-shadow: 0 4px 20px rgba(128,0,0,0.3);
+            border: 2px solid var(--primary-gold);
+        }
 
-// (其餘登入、註冊、結帳、簽到等 API 維持原本邏輯...)
-app.listen(process.env.PORT || 3000);
+        .announcement-header {
+            background: var(--primary-gold); color: white;
+            padding: 10px; text-align: center; font-weight: bold;
+            /* ✨ 標題閃爍特效 */
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        .winner-msg {
+            padding: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(5px);
+        }
+        .winner-msg b { color: #ffd700; }
+
+        /* 商品卡片與數量按鈕 */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
+        .card { background: white; border-radius: 10px; overflow: hidden; padding-bottom: 10px; }
+        .card img { width: 100%; height: 150px; object-fit: cover; }
+        
+        /* [始版 DNA] 數量加減控制項 */
+        .qty-control {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin: 10px 0;
+        }
+        .qty-btn {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1px solid #ddd; background: #fff;
+            font-weight: bold; cursor: pointer;
+        }
+
+        /* 刮刮樂區域 */
+        .scratch-area {
+            background: white; margin: 15px; padding: 20px;
+            border-radius: 12px; text-align: center;
+        }
+        #prize {
+            height: 60px; line-height: 60px; background: #eee;
+            margin: 15px 0; border-radius: 8px; font-weight: bold; font-size: 20px;
+        }
+        .scratch-btn {
+            background: var(--noble-red); color: white;
+            border: none; padding: 12px 30px; border-radius: 25px;
+            font-size: 16px; width: 100%;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/5068/5068680.png" class="menu-btn" onclick="toggleMenu()">
+
+    <div class="sync-panel">
+        <h2 id="global-count-display">🔥 全服累計：-- 抽</h2>
+        <div id="jackpot-hint">正在連線至馬年伺服器...</div>
+    </div>
+
+    <div id="winner-announcement" class="hidden">
+        <div class="announcement-header">✨ 2026 終極馬王榮耀榜 ✨</div>
+        <div id="winner-list"></div>
+    </div>
+
+    <div class="scratch-area">
+        <h3>🧧 霸氣刮刮樂</h3>
+        <p>消耗 10 積分 / 次</p>
+        <div id="prize">點擊下方開刮</div>
+        <button class="scratch-btn" id="scratch-btn" onclick="playScratch()">開刮領大獎</button>
+    </div>
+
+    <div class="product-grid" id="product-list">
+        </div>
+
+    <script>
+        const API = "https://你的後端網址.com/api"; // 請更換為你的實際網址
+        let user = JSON.parse(localStorage.getItem('始版_user')) || { email: "", points: 0 };
+
+        /* [核心] 全服即時同步：每 3 秒自動執行 */
+        async function syncAllData() {
+            try {
+                // 1. 同步全服次數
+                const gRes = await fetch(API + "/global-stats");
+                const gData = await gRes.json();
+                document.getElementById('global-count-display').innerText = `🔥 全服累計：${gData.total} 抽`;
+                const remain = 100 - (gData.total % 100);
+                document.getElementById('jackpot-hint').innerText = `距離下次馬王：${remain} 抽`;
+
+                // 2. 同步公告欄 (由早排到晚)
+                loadWinners();
+            } catch (e) {}
+        }
+
+        async function loadWinners() {
+            const res = await fetch(API + "/winners");
+            const d = await res.json();
+            const board = document.getElementById('winner-announcement');
+            const list = document.getElementById('winner-list');
+            if(d.length > 0) {
+                board.classList.remove('hidden');
+                list.innerHTML = d.map(w => `
+                    <div class="winner-msg">
+                        🏅 <b>No.${w.winner_no} ${w.username}</b> 賀：<span>"${w.bio}"</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /* [核心] 刮刮樂邏輯：含保底通知 */
+        async function playScratch() {
+            const btn = document.getElementById('scratch-btn');
+            const box = document.getElementById('prize');
+            if(btn.disabled) return;
+
+            btn.disabled = true;
+            box.innerText = "開運中...";
+            
+            try {
+                const res = await fetch(API + "/scratch-win", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email })
+                });
+                
+                if(!res.ok) throw new Error(await res.text());
+                
+                const d = await res.json();
+                box.innerText = d.prizeName;
+                
+                // 大獎通知
+                if(d.prizeName.includes("88萬")) {
+                    alert(`🎊 恭喜！您成為第 ${d.winnerNo} 位馬王！`);
+                }
+                
+                syncAllData(); // 立即同步全服數據
+            } catch (e) {
+                alert(e.message === "POINTS_INSUFFICIENT" ? "積分不足！" : "連線失敗");
+                box.innerText = "請再試一次";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 啟動定時同步器
+        setInterval(syncAllData, 3000);
+        window.onload = syncAllData;
+
+        function toggleMenu() { alert("選單功能載入中..."); }
+    </script>
+</body>
+</html>
