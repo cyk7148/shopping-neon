@@ -80,21 +80,27 @@ app.post('/api/checkout', async (req, res) => {
     } catch (e) { res.status(500).send("結帳失敗"); }
 });
 
-/* [始版修復] 公告欄：排除名字長度干擾，鎖定中獎時間排序 */
+/* [始版修正] 公告欄：加入遞增序號並強制物理排序 */
 app.get('/api/winners', async (req, res) => {
     try {
-        // 使用獲獎時間 (created_at) 升序排列，最早獲獎者永遠在最上方
-        // 如果你的 users 表沒有獲獎時間欄位，請改用 id ASC 並確保數據庫主鍵遞增
+        // 1. 先從資料庫撈出所有馬王，按 id 升序排列 (最早的在前面)
         const result = await pool.query(
-            'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY created_at ASC'
+            'SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC'
         );
-        res.json(result.rows);
+        
+        // 2. 透過 map 自動加上中獎序號，從 1 開始標到大
+        const winnersWithNo = result.rows.map((w, index) => ({
+            ...w,
+            winner_no: index + 1
+        }));
+        
+        res.json(winnersWithNo);
     } catch (e) {
-        // 如果報錯 created_at 不存在，請改用下面這行 (強制鎖定 ID 遞增順序)
-        const fallback = await pool.query('SELECT username, bio FROM users WHERE has_won_jackpot = TRUE ORDER BY id ASC');
-        res.json(fallback.rows);
+        console.error("公告序號處理異常");
+        res.status(500).send("Error");
     }
 });
+
 
 
 
