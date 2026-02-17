@@ -3,48 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>萌商城 - 始版</title>
+    <title>萌商城 - 2026 營運版 (純隨機)</title>
+    
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f8f8f8; text-align: center; }
-        .sync-panel { background: #fff9e6; border: 2px solid #d4af37; padding: 20px; margin: 60px 15px 15px; border-radius: 12px; }
-        #winner-announcement { background: linear-gradient(45deg, #800000, #b22222); color: white; margin: 15px; border-radius: 10px; border: 2px solid #d4af37; overflow: hidden; }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        :root {
+            --primary-gold: #d4af37;
+            --noble-red: #800000;
+            --glass: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            font-family: -apple-system, sans-serif;
+            margin: 0; padding: 0; background: #f8f8f8;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* [始版 DNA] 32px 漢堡按鈕 */
+        .menu-btn {
+            width: 32px; height: 32px;
+            padding: 10px; cursor: pointer;
+            position: fixed; top: 10px; left: 10px; z-index: 1000;
+            background: var(--glass); border-radius: 8px;
+        }
+
+        header {
+            background: white; padding: 15px; margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;
+        }
+
+        /* [始版 DNA] 紅金漸層馬王公告欄 (物理排序版) */
+        #winner-announcement {
+            margin: 60px 15px 15px; border-radius: 12px; overflow: hidden;
+            background: linear-gradient(45deg, #800000, #b22222);
+            border: 2px solid var(--primary-gold);
+        }
+        .announcement-header {
+            background: var(--primary-gold); color: white;
+            padding: 10px; text-align: center; font-weight: bold;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+        .winner-msg {
+            padding: 12px; color: white; border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px; text-align: left;
+        }
+        .winner-msg b { color: #ffd700; margin-right: 5px; }
+
+        /* 商品區塊 */
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 140px; object-fit: cover; }
         .qty-control { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0; }
-        .btn { background: #800000; color: white; border: none; padding: 10px 20px; border-radius: 20px; width: 90%; margin-bottom: 10px; }
+        .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+
+        /* 刮刮樂區域 */
+        .scratch-area { background: white; margin: 15px; padding: 25px; border-radius: 15px; text-align: center; }
+        #prize-box { height: 50px; line-height: 50px; background: #f0f0f0; border-radius: 8px; margin: 15px 0; font-weight: bold; }
+        .btn-main { background: var(--noble-red); color: white; border: none; padding: 12px; border-radius: 25px; width: 100%; cursor: pointer; }
+
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sync-panel">
-        <h2 id="global-count-display">🔥 全服累計：-- 抽</h2>
-        <div id="jackpot-hint">正在讀取最新數據...</div>
-    </div>
+    <img src="https://cdn-icons-png.flaticon.com/512/5068/5068680.png" class="menu-btn" onclick="alert('選單功能載入中...')">
+
+    <header>
+        <h2 style="margin:0; color:var(--noble-red);">萌商城</h2>
+    </header>
 
     <div id="winner-announcement" class="hidden">
-        <div style="background:#d4af37; padding:5px;">✨ 2026 馬王榮耀榜 ✨</div>
+        <div class="announcement-header">✨ 2026 馬王榮耀榜 ✨</div>
         <div id="winner-list"></div>
     </div>
 
-    <div id="product-list" class="product-grid"></div>
+    <div class="scratch-area">
+        <h3 style="margin:0;">🧧 霸氣刮刮樂</h3>
+        <p style="font-size:12px; color:#666;">純機率隨機大獎，試試你的手氣！</p>
+        <div id="prize-box">準備好開刮了嗎？</div>
+        <button class="btn-main" id="scratch-btn" onclick="playScratch()">消耗 10 積分開刮</button>
+    </div>
+
+    <div class="product-grid" id="product-list"></div>
 
     <script>
-        const API = window.location.origin + "/api"; // 自動抓取目前網址
+        const API = window.location.origin + "/api"; 
+        let user = JSON.parse(localStorage.getItem('始版_user')) || { email: "test@gmail.com" };
 
-        async function syncData() {
+        // [核心] 僅加載名單，不加載全服次數
+        async function loadWinners() {
             try {
-                const sRes = await fetch(API + "/global-stats");
-                const sData = await sRes.json();
-                document.getElementById('global-count-display').innerText = `🔥 全服累計：${sData.total} 抽`;
-                document.getElementById('jackpot-hint').innerText = `距離下次 88萬：${100 - (sData.total % 100)} 抽`;
-
-                const wRes = await fetch(API + "/winners");
-                const wData = await wRes.json();
+                const res = await fetch(API + "/winners");
+                const d = await res.json();
                 const board = document.getElementById('winner-announcement');
-                if (wData.length > 0) {
+                if (d.length > 0) {
                     board.classList.remove('hidden');
-                    document.getElementById('winner-list').innerHTML = wData.map(w => `<div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.2);">🏅 No.${w.winner_no} ${w.username}</div>`).join('');
+                    document.getElementById('winner-list').innerHTML = d.map(w => `
+                        <div class="winner-msg">🏅 <b>No.${w.winner_no} ${w.username}</b> 賀："${w.bio}"</div>
+                    `).join('');
                 }
             } catch (e) {}
         }
@@ -55,14 +112,16 @@
                 const products = await res.json();
                 document.getElementById('product-list').innerHTML = products.map(p => `
                     <div class="card">
-                        <img src="${p.image_url}" style="width:100%; height:120px; object-fit:cover;">
-                        <h4>${p.name}</h4>
-                        <div class="qty-control">
-                            <button onclick="changeQty(${p.id}, -1)">-</button>
-                            <span id="qty-${p.id}">1</span>
-                            <button onclick="changeQty(${p.id}, 1)">+</button>
+                        <img src="${p.image_url}">
+                        <div style="padding:10px;">
+                            <h4 style="margin:5px 0;">${p.name}</h4>
+                            <div class="qty-control">
+                                <button class="qty-btn" onclick="changeQty(${p.id}, -1)">-</button>
+                                <span id="qty-${p.id}">1</span>
+                                <button class="qty-btn" onclick="changeQty(${p.id}, 1)">+</button>
+                            </div>
+                            <button class="btn-main" style="font-size:12px; padding:8px;">加入購物車</button>
                         </div>
-                        <button class="btn">加入購物車</button>
                     </div>
                 `).join('');
             } catch (e) {}
@@ -74,8 +133,32 @@
             if (v >= 1) el.innerText = v;
         }
 
-        setInterval(syncData, 3000);
-        window.onload = () => { syncData(); loadProducts(); };
+        async function playScratch() {
+            const btn = document.getElementById('scratch-btn');
+            const box = document.getElementById('prize-box');
+            btn.disabled = true;
+            box.innerText = "正在刮開...";
+
+            try {
+                const res = await fetch(API + "/scratch-win", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email })
+                });
+                const d = await res.json();
+                box.innerText = d.prizeName;
+                if (d.prizeName.includes("88萬")) alert(`🎊 恭喜！您是第 ${d.winnerNo} 位馬王！`);
+                loadWinners(); // 中獎後手動刷新公告欄
+            } catch (e) {
+                alert("積分不足或連線失敗");
+                box.innerText = "請重試";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // 純隨機版：不需要 setInterval 定時同步
+        window.onload = () => { loadWinners(); loadProducts(); };
     </script>
 </body>
 </html>
