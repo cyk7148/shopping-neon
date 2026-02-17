@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>萌商城 - 🧧 始版 (馬年營運正式定稿)</title>
+    <title>萌商城 - 🧧 始版 (最終完整定稿)</title>
     <style>
-        :root { 
-            --p: #d32f2f; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --pink-border: #ff8a80; --grey-scratch: #b0b0b0; 
-        }
+        :root { --p: #d32f2f; --bg: #fdfaf7; --red: #c41a1a; --gold: #ffd700; --pink-border: #ff8a80; --grey-scratch: #b0b0b0; }
+        body { font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
         
-        body { 
-            font-family: "PingFang TC", sans-serif; background: var(--bg); margin: 0; padding-top: 70px; overflow-x: hidden;
-            touch-action: manipulation; -webkit-user-select: none; user-select: none; 
-        }
-        
-        /* [Header] 放大漢堡選單按鈕 */
+        /* [始版視覺：漢堡選單放大] */
         header { background: white; height: 70px; display: flex; align-items: center; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
         header button { font-size: 32px; border:none; background:none; color:var(--p); cursor:pointer; padding: 5px 10px; display: flex; align-items: center; }
         .logo-area { display: flex; align-items: center; cursor: pointer; font-size: 28px; }
         .logo-text { font-weight: 900; color: var(--p); font-size: 22px; margin-left: 10px; }
         
-        /* [側邊選單] */
+        /* 選單圖示與排版 */
         .drawer { position: fixed; left: -280px; top: 0; width: 280px; height: 100%; background: white; z-index: 2000; transition: 0.3s; padding: 50px 20px; box-sizing: border-box; }
         .drawer.active { left: 0; }
         .drawer-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; color: #333; font-weight: 500; display: flex; align-items: center; }
@@ -28,7 +22,7 @@
         .mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
         .mask.active { display: block; }
 
-        /* [霸氣刮刮樂] 強制一列標籤、去中槓、金幣金條視覺 */
+        /* [始版視覺：霸氣刮刮樂標籤與去槓視覺] */
         #modal-scratch .modal-card { 
             background: #d32f2f; border: 4px solid var(--gold); padding: 60px 25px 40px; border-radius: 20px; position: relative; overflow: visible;
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
@@ -36,36 +30,26 @@
         }
         #modal-scratch .modal-card::before, #modal-scratch .modal-card::after { content: ""; position: absolute; top: 0; bottom: 0; width: 15px; background: linear-gradient(to right, var(--gold), #ffecb3, var(--gold)); }
         #modal-scratch .modal-card::before { left: 15px; } #modal-scratch .modal-card::after { right: 15px; }
-        
-        .scratch-header-tag { 
-            position: absolute; top: -25px; left: 50%; transform: translateX(-50%); 
-            background: linear-gradient(to bottom, #d32f2f, #b71c1c); border: 3px solid var(--gold); color: var(--gold); 
-            padding: 10px 40px; border-radius: 15px; font-size: 28px; font-weight: 900; z-index: 10; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
-            white-space: nowrap; min-width: 180px; text-align: center; 
-        }
-
+        .scratch-header-tag { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); background: linear-gradient(to bottom, #d32f2f, #b71c1c); border: 3px solid var(--gold); color: var(--gold); padding: 10px 40px; border-radius: 15px; font-size: 28px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); white-space: nowrap; min-width: 180px; text-align: center; }
         #prize { height: 150px; display: flex; align-items: center; justify-content: center; background: var(--grey-scratch); border: 6px solid #e57373; font-size: 24px; font-weight: bold; color: #fff; margin: 20px auto; width: 85%; position: relative; z-index: 2; box-shadow: inset 0 0 15px rgba(0,0,0,0.2); }
         #prize.revealed { background: #fffbe6; border: 4px dashed var(--gold); color: #c62828; font-size: 32px; animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #scratch-btn { background: #ffeb3b; color: #8f0000; border: none; font-weight: 900; font-size: 20px; padding: 16px; width: 90%; border-radius: 10px; cursor: pointer; position: relative; z-index: 2; box-shadow: 0 6px 0 #fbc02d; transition: 0.1s; }
-        #scratch-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #fbc02d; }
         .coins-stack { position: absolute; bottom: -15px; right: -10px; z-index: 5; display: flex; align-items: flex-end; }
         .coin-img { width: 70px; height: 50px; background: radial-gradient(circle, #ffeb3b, #fbc02d); border-radius: 10px; border: 2px solid #fbc02d; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #8f0000; font-size: 24px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
 
-        /* [編輯欄位對齊] */
+        /* [始版視覺：編輯欄位高度對齊] */
         .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         .edit-left { display: flex; flex-direction: column; gap: 10px; }
         .edit-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 45px; }
         .edit-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; height: 100px; resize: none; }
 
-        /* [面板樣式] */
+        /* 面板與通用樣式 */
         .side-panel { position: fixed; right: -100%; top: 0; width: 85%; max-width: 350px; height: 100%; background: white; z-index: 2100; transition: 0.3s; padding: 25px; box-sizing: border-box; overflow-y: auto; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
         .h-item { display: flex; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-bottom: 12px; align-items: center; border: 1px solid #eee; }
         .h-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-right: 12px; }
         .h-info { flex: 1; text-align: left; }
         .amt-pos { color: #2e7d32; font-weight: 900; }
         .amt-neg { color: var(--red); font-weight: 900; }
-
         .btn { background: var(--p); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal.active { display: flex; }
@@ -77,6 +61,7 @@
         .product-card { background: white; border-radius: 20px; padding: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; }
         .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 15px; }
 
+        .winner-board { background: linear-gradient(135deg, #b71c1c, #d32f2f); border: 2px solid var(--gold); margin: 15px; padding: 15px; border-radius: 15px; color: white; box-shadow: 0 5px 15px rgba(183, 28, 28, 0.4); }
         @keyframes pop-in { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
         .scratching { animation: shake 0.12s infinite; }
         @keyframes shake { 0%, 100% { transform: translate(0,0); } 20% { transform: translate(-3px, 2px); } 40% { transform: translate(3px, -2px); } 60% { transform: translate(-3px, -2px); } 80% { transform: translate(3px, 2px); } }
@@ -109,7 +94,7 @@
 <div class="container">
     <div id="winner-announcement" class="winner-board hidden"><h4>🏆 88萬馬王公告 🏆</h4><div id="winner-list"></div></div>
     <div id="page-products" class="grid">載入中...</div>
-    <div id="page-detail" class="hidden" style="padding:20px; text-align:center;"><div id="d-content"></div><button class="btn" style="background:#eee; color:#666; margin-top:20px;" onclick="showPage('products')">← 返回商城</button></div>
+    <div id="page-detail" class="hidden" style="padding:20px; text-align:center;"><div id="d-content"></div><button class="btn" style="background:#eee; color:#666; margin-top:20px;" onclick="showPage('products')">← 返回</button></div>
     <div id="page-cart" class="hidden" style="padding:20px;">
         <h2 style="color:var(--p);">🛒 購物車</h2><div id="c-items"></div>
         <div style="text-align:right; margin-top:20px; padding:20px; background:white; border-radius:20px; box-shadow:0 5px 15px rgba(0,0,0,0.05);">
@@ -137,10 +122,7 @@
     <div id="edit-box" class="hidden" style="margin-top:20px; text-align:left;">
         <p id="force-msg" class="hidden" style="color:var(--red); font-weight:bold; text-align:center;">🎉 歡迎！請先完成資料初始化</p>
         <div class="edit-grid">
-            <div class="edit-left">
-                <input id="n-name" placeholder="新暱稱" class="edit-input">
-                <input id="n-pass" type="password" placeholder="新密碼 (不改留空)" class="edit-input">
-            </div>
+            <div class="edit-left"><input id="n-name" placeholder="新暱稱" class="edit-input"><input id="n-pass" type="password" placeholder="新密碼 (不改留空)" class="edit-input"></div>
             <textarea id="n-bio" placeholder="個人介紹" class="edit-textarea"></textarea>
         </div>
         <button onclick="updateProfile()" class="btn">確認並儲存</button>
@@ -154,10 +136,8 @@
 
 <script>
     const API = "/api"; let products = [], cart = [], user = null, points = 0, isRegMode = false;
-    document.getElementById('scratch-btn').addEventListener('touchstart', function(e) { e.preventDefault(); playScratch(); }, { passive: false });
-    document.getElementById('scratch-btn').addEventListener('click', function(e) { if (e.pointerType !== 'mouse') return; playScratch(); });
-
-    // [始版：強同步與刷新機制]
+    
+    // [始版核心：積分與數量強刷同步]
     function refreshUser() {
         if(!user) return;
         points = Number(user.points);
@@ -177,26 +157,21 @@
             localStorage.setItem('始版_user', JSON.stringify(user));
             refreshUser(); 
             if(!user.is_profile_updated) { document.getElementById('modal-user').classList.add('active'); document.getElementById('user-card').classList.add('force-mode'); document.getElementById('force-msg').classList.remove('hidden'); document.getElementById('user-title').innerText = "✨ 初始化帳號"; }
-            if(show) alert("✅ 積分已同步！");
+            if(show) alert("✅ 積分同步成功！目前：" + points);
         } 
     }
 
-    // [修復點：每日簽到邏輯]
+    // [修復點：每日簽到同步至始版變數]
     async function dailySignin() {
-        if(!user) return;
+        if(!user) return alert("請先登入");
         const res = await fetch(API + "/daily-signin", { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: user.email}) });
         if (res.ok) {
-            const d = await res.json();
-            alert("✅ 簽到成功！獲得 10 積分");
-            user.points = Number(d.newTotal);
-            localStorage.setItem('始版_user', JSON.stringify(user));
-            refreshUser();
-        } else {
-            const d = await res.json();
-            alert("❌ " + (d.error || "簽到失敗"));
-        }
+            const d = await res.json(); alert("✅ 簽到成功！獲得 10 積分");
+            user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser();
+        } else alert("❌ " + ((await res.json()).error || "領過囉"));
     }
 
+    // [修復點：刮中大獎即時呼叫公告欄]
     async function playScratch() {
         if(points < 10) return alert("積分不足 10 點！");
         const box = document.getElementById('prize'), btn = document.getElementById('scratch-btn');
@@ -208,10 +183,13 @@
             const d = await res.json(); box.classList.remove('scratching'); box.innerText = d.prizeName; box.className = "revealed"; 
             user.points = Number(d.newTotal); localStorage.setItem('始版_user', JSON.stringify(user)); refreshUser(); 
             try{document.getElementById('s-win').play();}catch(e){}
+            // 核心修正：刮中大獎立即重新抓取公告
+            if(d.prizeName.includes("88萬") || d.prizeName.includes("終極馬王")) { loadWinners(); }
         }
         btn.disabled = false;
     }
 
+    // 商品詳情、購物車與面板
     function showDetail(id) { const p = products.find(x => x.id === id); document.getElementById('d-content').innerHTML = `<div style="background:white; padding:20px; border-radius:20px;"><img src="${p.image_url}" style="width:100%; border-radius:15px; max-height:280px; object-fit:cover;"><h2 style="color:var(--p);">${p.name}</h2><p>${p.description || "馬年精選"}</p><b style="font-size:24px;">$${p.price}</b><button class="btn" style="margin-top:20px;" onclick="add(${p.id})">加入購物車</button></div>`; showPage('detail'); }
     function renderCart() { const t = cart.reduce((s, i) => s + (i.price * i.qty), 0); document.getElementById('total').innerText = t; document.getElementById('reward').innerText = Math.floor(t * 0.01); document.getElementById('c-items').innerHTML = cart.map((i, idx) => `<div class="h-item" style="background:white; margin-bottom:10px;"><img src="${i.image_url}" class="h-img"><div class="h-info"><b>${i.name}</b><br><span style="color:var(--p);">$${i.price}</span></div><div style="display:flex; align-items:center; gap:8px;"><button onclick="updateQty(${idx},-1)" style="border:none; width:25px; height:25px; border-radius:50%; background:#eee;">-</button><span>${i.qty}</span><button onclick="updateQty(${idx},1)" style="border:none; width:25px; height:25px; border-radius:50%; background:#eee;">+</button><button onclick="cart.splice(${idx},1);renderCart();refreshUser();" style="border:none; background:none; color:#ccc; margin-left:10px;">✕</button></div></div>`).join('') || "<p>空</p>"; }
     function add(id) { const p = products.find(x=>x.id===id), e = cart.find(x=>x.id===id); if(e) e.qty++; else cart.push({...p, qty:1}); refreshUser(); alert("已加入"); }
@@ -231,7 +209,6 @@
     function toggleEditBox() { document.getElementById('edit-box').classList.toggle('hidden'); document.getElementById('profile-view').classList.toggle('hidden'); }
     function logout() { user=null; localStorage.removeItem('始版_user'); location.reload(); }
     async function loadWinners() { try { const res = await fetch(API + "/winners"); const d = await res.json(); if(d.length > 0) { document.getElementById('winner-announcement').classList.remove('hidden'); document.getElementById('winner-list').innerHTML = d.map(w => `<div style="border-left:4px solid var(--gold); padding:8px; margin-bottom:5px;">🐎 ${w.username} 得主賀：<span>"${w.bio}"</span></div>`).join(''); } } catch(e) {} }
-    function toggleLoginMode() { isRegMode = !isRegMode; document.getElementById('login-title').innerText = isRegMode ? "新春註冊" : "新春登入"; }
     window.onload = () => { const s = localStorage.getItem('始版_user'); if(s) { user = JSON.parse(s); syncUserData(false); } else showPage('login'); load(); };
 </script>
 </body>
